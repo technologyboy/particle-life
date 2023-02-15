@@ -57,11 +57,11 @@ class Rectangle {
             range.y + range.h < this.y - this.h);
     }
 
-    render(){
+    render() {
         push()
-fill(51,100)
+        fill(51, 100)
         stroke(255)
-        rect(this.x,this.y,this.w,this.h)
+        rect(this.x, this.y, this.w, this.h)
         pop()
     }
 

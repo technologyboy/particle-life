@@ -28,9 +28,9 @@ class Particle {
         } else if (d <= particleSightMax) {
             m = map(d, particleSightMax / 2, particleSightMax, a, 0)
             this.seek(n.pos, m)
-        }else{
-            this.vel = createVector(0,0)
-            this.acc = createVector(0,0)
+        } else {
+            this.vel = createVector(0, 0)
+            this.acc = createVector(0, 0)
         }
     }
 
@@ -48,7 +48,8 @@ class Particle {
         this.vel.limit(this.maxSpeed);
         this.pos.add(this.vel);
         this.acc.set(0, 0)
-        this.edges()
+        // this.edges()
+        this.bounce()
     };
 
     render() {
@@ -84,5 +85,12 @@ class Particle {
         if (this.pos.x > width + particleDiameter) { this.pos.x = -particleDiameter }
         if (this.pos.y < -particleDiameter) { this.pos.y = height + particleDiameter }
         if (this.pos.y > height + particleDiameter) { this.pos.y = -particleDiameter }
+    }
+
+    bounce() {
+        //wrap the particle across the screen
+        if (this.pos.x - particleDiameter < 0 || this.pos.x + particleDiameter > width) { this.vel.x = this.vel.x * -1 }
+        if (this.pos.y - particleDiameter < 0 || this.pos.y + particleDiameter > height) { this.vel.y = this.vel.y * -1 }
+
     }
 }

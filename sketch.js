@@ -22,28 +22,47 @@ let UImatrix
 function setup() {
   //set up canvas
   createCanvas(windowWidth, windowHeight);
+  
+  boundary = new Rectangle(10,10, width - 20, height -20)
 
 
-
-  boundary = new Rectangle(width / 2, height / 2, width + 200, height + 200)
-  let a = 255
-  colors.push(color(235, 64, 52, a))
-  colors.push(color(65, 71, 232, a))
-  colors.push(color(212, 255, 0, a))
-  colors.push(color(15, 140, 6, a))
-  colors.push(color(209, 4, 185, a))
-  colors.push(color(140, 234, 245, a))
+  colors.push(color('#621448'))
+  colors.push(color('#36a6fc'))
+  colors.push(color('#80d65c'))
+  colors.push(color('#e74a27'))
+  colors.push(color('#a63a7b'))
+  
 
   //Initial parameters 
-  particleDiameter = 15
-  colorsTotal = 2
-  particlesTotal = 5
-  particleSightMax = 500
-  particleSightMin = 100
+  particleDiameter = 10
+  colorsTotal = 5
+  particlesTotal = 100
+  particleSightMax = 250
+  particleSightMin = particleDiameter*2
 
   simReset()
 }
 
+
+
+function createAttractionValue(){
+  let a = floor(random(3))
+  // console.log(a)
+  switch (a) {
+    case 0:
+      return -1
+      break;
+      case 1:
+      return 0
+      break;
+      case 2:
+      return 1
+      break;
+  
+    default:
+      break;
+  }
+}
 
 function simReset() {
   //create attraction matrix.
@@ -51,10 +70,13 @@ function simReset() {
   for (let i = 0; i < colorsTotal; i++) {
     let row = []
     for (let j = 0; j < colorsTotal; j++) {
-      row.push(Math.round(random(-5, 5), 2))
+      // row.push(Math.round(random(-5, 5), 2))
+      row.push(createAttractionValue())
     }
     attractionMatrix.push(row)
   }
+  // console.table(attractionMatrix)
+  // noLoop()
 
 
   //create the particle entites
@@ -66,8 +88,8 @@ function simReset() {
 
 
   // create the areas needed for the UI interactions for the matrix
-  let scale = 45
-  let offset = createVector(50, 50)
+  let scale = 25
+  let offset = createVector(30, 30)
 
   UImatrix = []
 
@@ -120,7 +142,7 @@ function clamp(min, max, v) {
 };
 
 function lineColor(v) {
-  let a = 50
+  let a = 10
   let rtn
   if (v < 0) {
     rtn = color(255, 0, 0, a)
@@ -136,11 +158,12 @@ function draw() {
   background(0);
 
   //set up the new Qtree
-  qTree = new QuadTree(boundary, 2)
-  //insert all particles to teh new Qtree
+  qTree = new QuadTree(boundary, 10)
+  //insert all particles to the new Qtree
   particles.forEach(particle => {
     qTree.insert(particle.pos, particle)
   });
+
 
 
 
@@ -152,16 +175,23 @@ function draw() {
     //get all local particles
     let range = new Circle(particle.pos.x, particle.pos.y, particleSightMax)
     let neighbours = qTree.query(range);
+
+    // noFill()
+    // strokeWeight(1)
+    // stroke(255)
+    // text(neighbours.length, particle.pos.x,particle.pos.y)
+
     neighbours.forEach(neighbour => {
       particle.checkNeighbour(neighbour.userData)
-      let p1 = particle.pos
-      let p2 = neighbour.userData.pos
-      let attractionTypeAB = attractionMatrix[particle.color][neighbour.userData.color]
-      let attractionTypeBA = attractionMatrix[neighbour.userData.color][particle.color]
-      let col1 = lineColor(attractionTypeAB)
-      let col2 = lineColor(attractionTypeBA)
+      // let p1 = particle.pos
+      // let p2 = neighbour.userData.pos
+      // // line(p1.x,p1.y,p2.x,p2.y)
+      // let attractionTypeAB = attractionMatrix[particle.color][neighbour.userData.color]
+      // let attractionTypeBA = attractionMatrix[neighbour.userData.color][particle.color]
+      // let col1 = lineColor(attractionTypeAB)
+      // let col2 = lineColor(attractionTypeBA)
 
-      gradientLine(p1.x, p1.y, p2.x, p2.y, col1, col2)
+      // gradientLine(p1.x, p1.y, p2.x, p2.y, col1, col2)
 
 
     });
@@ -170,6 +200,7 @@ function draw() {
 
 
   // let count = 0
+  push()
   particles.forEach(particle => {
     //draw the paticle on the screen
     particle.render()
@@ -178,6 +209,7 @@ function draw() {
     // if (count === 0) {
     //   // particle.pos = createVector(mouseX, mouseY)
     // } else {
+
 
     particle.update()
     // }
@@ -193,12 +225,12 @@ function draw() {
     // ellipse(particle.pos.x, particle.pos.y, particleSightMin)
 
 
-    pop()
   });
+  pop()
 
 
   //DEBUG
-  //render the dispaly for teh Qtree
+  //render the dispaly for the Qtree
   // qTree.show()
 
 
