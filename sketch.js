@@ -22,46 +22,71 @@ let UImatrix
 function setup() {
   //set up canvas
   createCanvas(windowWidth, windowHeight);
-  
-  boundary = new Rectangle(10,10, width - 20, height -20)
 
+  boundary = new Rectangle(10, 10, width - 20, height - 20)
 
-  colors.push(color('#621448'))
-  colors.push(color('#36a6fc'))
-  colors.push(color('#80d65c'))
-  colors.push(color('#e74a27'))
-  colors.push(color('#a63a7b'))
-  
+  addColor('#621448')
+  addColor('#36a6fc')
+  addColor('#80d65c')
+  addColor('#e74a27')
+  addColor('#a63a7b')
+
 
   //Initial parameters 
-  particleDiameter = 10
-  colorsTotal = 5
-  particlesTotal = 100
+  particleDiameter = 20
+  colorsTotal = 2
+  particlesTotal = 25
   particleSightMax = 250
-  particleSightMin = particleDiameter*2
+  particleSightMin = particleDiameter * 2
 
   simReset()
 }
 
+function addColor(hex) {
+  let c = color(hex)
+  c.setAlpha(255)
+  colors.push(c)
+}
 
 
-function createAttractionValue(){
+
+function createAttractionValue() {
   let a = floor(random(3))
   // console.log(a)
   switch (a) {
     case 0:
       return -1
       break;
-      case 1:
+    case 1:
       return 0
       break;
-      case 2:
+    case 2:
       return 1
       break;
-  
+
     default:
       break;
   }
+}
+
+function midPoint(p1, p2) {
+  var midX = p1.x + (p2.x - p1.x) * 0.50;
+  var midY = p1.y + (p2.y - p1.y) * 0.50;
+  return createVector(midX, midY)
+}
+
+function draw_arrow(x1, x2, r) {
+  let offset = particleDiameter
+  let mid = midPoint(x1, x2)
+  push() //start new drawing state
+  fill(200)
+  stroke(100)
+  strokeWeight(1)
+  var angle = atan2(x1.y - x2.y, x1.x - x2.x); //gets the angle of the line
+  translate(mid.x, mid.y); //translates to the destination vertex
+  rotate(angle - HALF_PI); //rotates the arrow point
+  triangle(-offset * 0.5, offset, offset * 0.5, offset, 0, -offset / 2); //draws the arrow point as a triangle
+  pop();
 }
 
 function simReset() {
@@ -80,9 +105,10 @@ function simReset() {
 
 
   //create the particle entites
+  let spread = (height/2) - particleDiameter
   for (let i = 0; i < particlesTotal; i++) {
     // particles.push(new Particle(createVector(random(width), random(height)), floor(random(colorsTotal))))
-    particles.push(new Particle(createVector((width / 2) + random(-100, 100), (height / 2) + random(-100, 100)), floor(random(colorsTotal))))
+    particles.push(new Particle(createVector((width / 2) + random(-spread, spread), (height / 2) + random(-spread, spread)), floor(random(colorsTotal))))
   }
 
 
@@ -177,16 +203,30 @@ function draw() {
     let neighbours = qTree.query(range);
 
     // noFill()
-    // strokeWeight(1)
+    strokeWeight(1)
     // stroke(255)
     // text(neighbours.length, particle.pos.x,particle.pos.y)
-
+    let f = createVector(0, 0)
     neighbours.forEach(neighbour => {
-      particle.checkNeighbour(neighbour.userData)
+      f.add(particle.checkNeighbour(neighbour.userData))
+
       // let p1 = particle.pos
       // let p2 = neighbour.userData.pos
-      // // line(p1.x,p1.y,p2.x,p2.y)
-      // let attractionTypeAB = attractionMatrix[particle.color][neighbour.userData.color]
+      // stroke(255, 50)
+      // strokeWeight(2)
+      // line(p1.x, p1.y, p2.x, p2.y)
+      // let m = midPoint(p1, p2)
+      // let d = floor(dist(p1.x,p1.y, p2.x, p2.y))
+      // noStroke()
+      // fill(255,175)
+      // text(d, m.x, m.y)
+      // let attractionType = attractionMatrix[particle.color][neighbour.userData.color]
+      // if (attractionType < 0) {
+      //   draw_arrow(p1, p2)
+      // } else if (attractionType > 0) {
+      //   draw_arrow(p2, p1)
+      // }
+
       // let attractionTypeBA = attractionMatrix[neighbour.userData.color][particle.color]
       // let col1 = lineColor(attractionTypeAB)
       // let col2 = lineColor(attractionTypeBA)
@@ -195,6 +235,14 @@ function draw() {
 
 
     });
+    // text(f.x + " " + f.y, particle.pos.x,particle.pos.y+25)
+    if (f.x == 0 && f.y == 0) {
+      particle.wander()
+
+    } else {
+      particle.applyForce(f)
+
+    }
   });
   pop()
 
@@ -245,7 +293,7 @@ function draw() {
         stroke('yellow')
         strokeWeight(3)
       } else {
-        stroke(255)
+        stroke(255,150)
         strokeWeight(1)
       }
 
@@ -253,7 +301,7 @@ function draw() {
 
       push()
 
-      fill(255)
+      fill(255,150)
       noStroke()
       textAlign(CENTER, CENTER)
       text(attractionMatrix[i][j], r.x, r.y, r.w, r.h)
