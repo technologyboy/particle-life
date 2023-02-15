@@ -153,12 +153,13 @@ class QuadTree {
         strokeWeight(1);
         rectMode(CENTER);
         rect(this.boundary.x, this.boundary.y, this.boundary.w * 2, this.boundary.h * 2);
-        // for (let p of this.points) {
-        //     strokeWeight(8);
-        //     point(p.x, p.y);
-        //     strokeWeight(1);
-        //     line(p.x, p.y, this.boundary.x + this.boundary.w / 2, this.boundary.y + this.boundary.h / 2)
-        // }
+        for (let p of this.points) {
+            strokeWeight(8);
+            point(p.x, p.y);
+            strokeWeight(1);
+            // line(p.x, p.y, this.boundary.x + (this.boundary.w / 2), this.boundary.y + (this.boundary.h / 2))
+            line(p.x, p.y, this.boundary.x, this.boundary.y)
+        }
 
         if (this.divided) {
             this.northeast.show();

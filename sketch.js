@@ -26,20 +26,20 @@ function setup() {
 
 
   boundary = new Rectangle(width / 2, height / 2, width + 200, height + 200)
-
-  colors.push(color(235, 64, 52, 200))
-  colors.push(color(65, 71, 232, 200))
-  colors.push(color(212, 255, 0, 200))
-  colors.push(color(15, 140, 6, 200))
-  colors.push(color(209, 4, 185, 200))
-  colors.push(color(140, 234, 245, 200))
+  let a = 255
+  colors.push(color(235, 64, 52, a))
+  colors.push(color(65, 71, 232, a))
+  colors.push(color(212, 255, 0, a))
+  colors.push(color(15, 140, 6, a))
+  colors.push(color(209, 4, 185, a))
+  colors.push(color(140, 234, 245, a))
 
   //Initial parameters 
-  particleDiameter = 25
-  colorsTotal = 3
-  particlesTotal = 50
-  particleSightMax = 200
-  particleSightMin = 50
+  particleDiameter = 15
+  colorsTotal = 2
+  particlesTotal = 5
+  particleSightMax = 500
+  particleSightMin = 100
 
   simReset()
 }
@@ -51,25 +51,23 @@ function simReset() {
   for (let i = 0; i < colorsTotal; i++) {
     let row = []
     for (let j = 0; j < colorsTotal; j++) {
-      row.push(0)
+      row.push(Math.round(random(-5, 5), 2))
     }
     attractionMatrix.push(row)
   }
 
 
-  console.table(attractionMatrix)
-
-
   //create the particle entites
   for (let i = 0; i < particlesTotal; i++) {
-    particles.push(new Particle(createVector(random(width), random(height)), floor(random(colorsTotal))))
+    // particles.push(new Particle(createVector(random(width), random(height)), floor(random(colorsTotal))))
+    particles.push(new Particle(createVector((width / 2) + random(-100, 100), (height / 2) + random(-100, 100)), floor(random(colorsTotal))))
   }
 
 
 
   // create the areas needed for the UI interactions for the matrix
-  let scale = 30
-  let offset = createVector(0, 0)
+  let scale = 45
+  let offset = createVector(50, 50)
 
   UImatrix = []
 
@@ -81,7 +79,6 @@ function simReset() {
     }
     UImatrix.push(row)
   }
-  console.log(UImatrix)
 }
 
 
@@ -89,16 +86,15 @@ function simReset() {
 function mouseWheel(event) {
 
   let a = (event.delta > 0) ? 0.1 : -0.1;
+  console.log(a)
 
 
   for (let i = 1; i < colorsTotal + 1; i++) {
-    //draw color rows in 
     for (let j = 1; j < colorsTotal + 1; j++) {
       let r = UImatrix[i][j]
       if (r.contains(mouseX, mouseY)) {
-        console.log("mouse in", r)
         attractionMatrix[i - 1][j - 1] += a
-        attractionMatrix[i - 1][j - 1] = clamp(-1, 1, attractionMatrix[i - 1][j - 1])
+        // attractionMatrix[i - 1][j - 1] = clamp(-1, 1, attractionMatrix[i - 1][j - 1])
       }
 
     }
@@ -123,11 +119,24 @@ function clamp(min, max, v) {
   return Math.min(Math.max(v, min), max);
 };
 
+function lineColor(v) {
+  let a = 50
+  let rtn
+  if (v < 0) {
+    rtn = color(255, 0, 0, a)
+  } else if (v > 0) {
+    rtn = color(0, 0, 255, a)
+  } else {
+    rtn = color(180, 0)
+  }
+  return rtn
+}
+
 function draw() {
   background(0);
 
   //set up the new Qtree
-  qTree = new QuadTree(boundary, 4)
+  qTree = new QuadTree(boundary, 2)
   //insert all particles to teh new Qtree
   particles.forEach(particle => {
     qTree.insert(particle.pos, particle)
@@ -136,40 +145,55 @@ function draw() {
 
 
 
+  push()
   stroke(255)
+  strokeWeight(particleDiameter / 2)
   particles.forEach(particle => {
     //get all local particles
     let range = new Circle(particle.pos.x, particle.pos.y, particleSightMax)
     let neighbours = qTree.query(range);
     neighbours.forEach(neighbour => {
       particle.checkNeighbour(neighbour.userData)
+      let p1 = particle.pos
+      let p2 = neighbour.userData.pos
+      let attractionTypeAB = attractionMatrix[particle.color][neighbour.userData.color]
+      let attractionTypeBA = attractionMatrix[neighbour.userData.color][particle.color]
+      let col1 = lineColor(attractionTypeAB)
+      let col2 = lineColor(attractionTypeBA)
+
+      gradientLine(p1.x, p1.y, p2.x, p2.y, col1, col2)
+
+
     });
   });
+  pop()
 
 
-  let count = 0
+  // let count = 0
   particles.forEach(particle => {
     //draw the paticle on the screen
     particle.render()
 
     //update the particle position
-    if (count === 0) {
-      particle.pos = createVector(mouseX, mouseY)
-    } else {
+    // if (count === 0) {
+    //   // particle.pos = createVector(mouseX, mouseY)
+    // } else {
 
-      particle.update()
-    }
-    count++
+    particle.update()
+    // }
+    // count++
 
 
-    //DEBUG
-    //render the vision range of the particles
+    // DEBUG
+    // render the vision range of the particles
     // push()
     // noFill()
     // stroke(100)
-    // ellipse(particle.pos.x, particle.pos.y, particleSightMax / 2)
-    // ellipse(particle.pos.x, particle.pos.y, particleSightMin / 2)
-    // pop()
+    // ellipse(particle.pos.x, particle.pos.y, particleSightMax)
+    // ellipse(particle.pos.x, particle.pos.y, particleSightMin)
+
+
+    pop()
   });
 
 
@@ -179,49 +203,62 @@ function draw() {
 
 
 
-  //draw the matrix on the screen sout can become UI 
+  //DRAW ATTRACTION MARTIX
   push()
-  for (let i = 0; i < colorsTotal + 1; i++) {
-    //draw color rows in 
-    for (let j = 0; j < colorsTotal + 1; j++) {
+
+  for (let i = 0; i < colorsTotal; i++) {
+    for (let j = 0; j < colorsTotal; j++) {
       let r = UImatrix[i][j]
-
-      if (i === 0 && j === 0) {
-        //do nothing here
-      } else if (i === 0) {
-        fill(colors[j])
-        ellipse(r.x + (r.w / 2), r.y + (r.h / 2), r.w, r.h)
-      } else if (j === 0) {
-        fill(colors[i])
-        ellipse(r.x + (r.w / 2), r.y + (r.h / 2), r.w, r.h)
+      if (r.contains(createVector(mouseX, mouseY))) {
+        stroke('yellow')
+        strokeWeight(3)
       } else {
-        if (r.contains(createVector(mouseX, mouseY)) && (i !== 0 && j !== 0)) {
-          stroke('yellow')
-          strokeWeight(3)
-        } else {
-          stroke(255)
-          strokeWeight(1)
-        }
-
-        r.render()
-
-
-        push()
-        fill(255)
-        noStroke()
-        textAlign(CENTER, CENTER)
-        text(attractionMatrix[i - 1][j - 1], r.x, r.y, r.w, r.h)
-        pop()
+        stroke(255)
+        strokeWeight(1)
       }
 
+      r.render()
 
+      push()
 
+      fill(255)
+      noStroke()
+      textAlign(CENTER, CENTER)
+      text(attractionMatrix[i][j], r.x, r.y, r.w, r.h)
+      pop()
     }
   }
+
+  let one = UImatrix[0][0]
+  let tl = new Rectangle(one.x - one.w, one.y - one.h, one.w, one.h)
+
+
+  for (let i = 0; i < colorsTotal; i++) {
+    fill(colors[i])
+    ellipse(tl.x + (tl.w / 2), tl.y + (tl.h / 2) + (tl.h * (i + 1)), tl.w - (tl.w / 3), tl.h - (tl.h / 3))
+  }
+
+  for (let i = 0; i < colorsTotal; i++) {
+    fill(colors[i])
+    ellipse(tl.x + (tl.w / 2) + tl.w * (i + 1), tl.y + (tl.h / 2), tl.w - (tl.w / 3), tl.h - (tl.h / 3))
+  }
+
   pop()
 
 
-  text(round(frameRate(), 1) + "  -  " + mouseX + ":" + mouseY, 50, height - 15)
+  //text(round(frameRate(), 1) + "  -  " + mouseX + ":" + mouseY, 50, height - 15)
+}
+
+
+function gradientLine(x1, y1, x2, y2, color1, color2) {
+  // linear gradient from start to end of line
+  var grad = this.drawingContext.createLinearGradient(x1, y1, x2, y2);
+  grad.addColorStop(0, color1);
+  grad.addColorStop(1, color2);
+
+  this.drawingContext.strokeStyle = grad;
+
+  line(x1, y1, x2, y2);
 }
 
 
@@ -284,7 +321,7 @@ function calculateAttractionForce(A, B) {
   // if (isFlee) {
   let a = attractionMatrix[A.color][B.color]
 
-    force.mult(a)
+  force.mult(a)
   // }
 
   force.sub(B.vel)
