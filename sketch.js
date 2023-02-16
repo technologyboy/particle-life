@@ -16,6 +16,8 @@ let particleSightMin //how close do particles need to be before the afftect of t
 
 
 //UI elements
+let UIObjects = []
+
 let UImatrix
 
 
@@ -100,12 +102,23 @@ function simReset() {
     }
     attractionMatrix.push(row)
   }
-  // console.table(attractionMatrix)
-  // noLoop()
+
+
+  let scale = 25
+  let offset = createVector(30, 30)
+  for (let i = 0; i < colorsTotal; i++) {
+
+    for (let j = 0; j < colorsTotal; j++) {
+      let r = new Rectangle(offset.x + (i * scale), offset.y + (j * scale), scale, scale)
+
+      UIObjects.push(new UI_Object(attractionMatrix[i][j], r, "green", "white", null, function (i, j) { UImatrix[i][j] += 1 }))
+    }
+  }
+
 
 
   //create the particle entites
-  let spread = (height/2) - particleDiameter
+  let spread = (height / 2) - particleDiameter
   for (let i = 0; i < particlesTotal; i++) {
     // particles.push(new Particle(createVector(random(width), random(height)), floor(random(colorsTotal))))
     particles.push(new Particle(createVector((width / 2) + random(-spread, spread), (height / 2) + random(-spread, spread)), floor(random(colorsTotal))))
@@ -113,15 +126,17 @@ function simReset() {
 
 
 
+  console.table(attractionMatrix)
   // create the areas needed for the UI interactions for the matrix
-  let scale = 25
-  let offset = createVector(30, 30)
+  // let scale = 25
+  // let offset = createVector(30, 30)
 
   UImatrix = []
 
   for (let i = 0; i < colorsTotal + 1; i++) {
     let row = []
     for (let j = 0; j < colorsTotal + 1; j++) {
+
       let r = new Rectangle(offset.x + (i * scale), offset.y + (j * scale), scale, scale)
       row.push(r)
     }
@@ -129,24 +144,32 @@ function simReset() {
   }
 }
 
+function wheelMatrix(i, j) {
+  let a = (event.delta > 0) ? 1 : -1;
+  UImatrix[i][j] += a
+}
+
 
 //mouse wheel interactions
 function mouseWheel(event) {
 
   let a = (event.delta > 0) ? 0.1 : -0.1;
-  console.log(a)
 
+  UIObjects.forEach(obj => {
+    
 
-  for (let i = 1; i < colorsTotal + 1; i++) {
-    for (let j = 1; j < colorsTotal + 1; j++) {
-      let r = UImatrix[i][j]
-      if (r.contains(mouseX, mouseY)) {
-        attractionMatrix[i - 1][j - 1] += a
-        // attractionMatrix[i - 1][j - 1] = clamp(-1, 1, attractionMatrix[i - 1][j - 1])
-      }
+  });
 
-    }
-  }
+  // for (let i = 1; i < colorsTotal + 1; i++) {
+  //   for (let j = 1; j < colorsTotal + 1; j++) {
+  //     let r = UImatrix[i][j]
+  //     if (r.contains(mouseX, mouseY)) {
+  //       attractionMatrix[i - 1][j - 1] += a
+  //       // attractionMatrix[i - 1][j - 1] = clamp(-1, 1, attractionMatrix[i - 1][j - 1])
+  //     }
+
+  //   }
+  // }
 }
 
 function mouseMoved() {
@@ -284,30 +307,30 @@ function draw() {
 
 
   //DRAW ATTRACTION MARTIX
-  push()
+  // push()
 
-  for (let i = 0; i < colorsTotal; i++) {
-    for (let j = 0; j < colorsTotal; j++) {
-      let r = UImatrix[i][j]
-      if (r.contains(createVector(mouseX, mouseY))) {
-        stroke('yellow')
-        strokeWeight(3)
-      } else {
-        stroke(255,150)
-        strokeWeight(1)
-      }
+  // for (let i = 0; i < colorsTotal; i++) {
+  //   for (let j = 0; j < colorsTotal; j++) {
+  //     let r = UImatrix[i][j]
+  //     if (r.contains(createVector(mouseX, mouseY))) {
+  //       stroke('yellow')
+  //       strokeWeight(3)
+  //     } else {
+  //       stroke(255, 150)
+  //       strokeWeight(1)
+  //     }
 
-      r.render()
+  //     r.render()
 
-      push()
+  //     push()
 
-      fill(255,150)
-      noStroke()
-      textAlign(CENTER, CENTER)
-      text(attractionMatrix[i][j], r.x, r.y, r.w, r.h)
-      pop()
-    }
-  }
+  //     fill(255, 150)
+  //     noStroke()
+  //     textAlign(CENTER, CENTER)
+  //     text(attractionMatrix[i][j], r.x, r.y, r.w, r.h)
+  //     pop()
+  //   }
+  // }
 
   let one = UImatrix[0][0]
   let tl = new Rectangle(one.x - one.w, one.y - one.h, one.w, one.h)
@@ -323,8 +346,12 @@ function draw() {
     ellipse(tl.x + (tl.w / 2) + tl.w * (i + 1), tl.y + (tl.h / 2), tl.w - (tl.w / 3), tl.h - (tl.h / 3))
   }
 
-  pop()
+  // pop()
 
+
+  UIObjects.forEach(obj => {
+    obj.render()
+  });
 
   //text(round(frameRate(), 1) + "  -  " + mouseX + ":" + mouseY, 50, height - 15)
 }
@@ -411,3 +438,4 @@ function calculateAttractionForce(A, B) {
 
 
 }
+

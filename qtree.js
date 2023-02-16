@@ -23,6 +23,10 @@ class Circle {
         this.r = r
     }
 
+    center() {
+        return createVector(this.x, this.y)
+    }
+
     contains(point) {
         let d = dist(this.x, this.y, point.x, point.y)
         return d <= this.r
@@ -43,6 +47,9 @@ class Rectangle {
         this.h = h
     }
 
+    center() {
+        return createVector(this.x + (this.w / 2), this.y + (this.h / 2))
+    }
     contains(point) {
         return (point.x >= this.x &&
             point.x < this.x + this.w &&
