@@ -3,7 +3,7 @@ class Particle {
         this.pos = (position) ? position : createVector(random(width), random(height));
         this.vel = createVector(0, 0)
         this.acc = createVector(0, 0);
-        this.maxSpeed = 1;
+        this.maxSpeed = 2;
         this.maxForce = 0.5
 
         this.color = color
@@ -18,74 +18,43 @@ class Particle {
         this.vel.add(this.acc);
         this.vel.limit(this.maxSpeed);
         this.pos.add(this.vel);
-        this.acc.set(0, 0)
-
+        // this.acc.set(0, 0)
+        this.vel.mult(0.00001)
         this.bounce() //or this.edges()
     };
 
     checkNeighbour(n) {
-        if(this === n){return createVector(0, 0)}//dont check if this is its self
-
-
-        noStroke()
-        fill(255)
-        textSize(16)
-        textAlign(CENTER, CENTER)
-
+        if (this === n) { return createVector(0, 0) }//dont check if this is its self
 
         let p1 = this.pos
         let p2 = n.pos
         let d = dist(p1.x, p1.y, p2.x, p2.y)
         let a = attractionMatrix[this.color][n.color]
 
-
-
-
-        if (d <= particleSightMax / 2) {//is this particle in range
+        if (d <= (particleSightMax / 2)) {//is this particle in range
             stroke(255, 50)
             strokeWeight(2)
             line(p1.x, p1.y, p2.x, p2.y)
 
-
-            stroke(0)
-            strokeWeight(2)
-            fill(255)
-            //text displays
             let m = midPoint(p1, p2)
-            // text(floor(d), m.x, m.y)
 
-        
-            let mm = distAlongLine(p1, p2, 0.2)
-            
-            let offset = 12
-            
-            push()
-            fill(this.fill)
-            stroke(0)
-            var angle = atan2(p1.y - p2.y, p1.x - p2.x); //gets the angle of the line
-            translate(mm.x, mm.y); //translates to the destination vertex
-            rotate(angle - HALF_PI); //rotates the arrow point
-            // if(a>0)rotate(HALF_PI);
-            // if(a<0)rotate(-HALF_PI);
-            triangle(-offset * 0.5, offset, offset * 0.5, offset, 0, -offset / 2); //draws the arrow point as a triangle
-            pop();
-
-
-
-            // draw_arrow(p1,mm,10,this.fill)
-            if (a > 0) {
-                // text('S', mm.x, mm.y)
-                return this.fleeOrSeek(n.pos)
-            } else if (a < 0) {
-                // text('F', mm.x, mm.y)
-                return this.fleeOrSeek(n.pos, true)
-            } else {
-                // text('W', p1.x, p1.y)
-                return this.wander()
+            strokeWeight(4)
+            if (a < 0) {
+                stroke(255, 0, 0, 150)
+                line(p1.x, p1.y, m.x, m.y)
+                return this.flee(p2)
+            } else if (a > 0) {
+                stroke(0, 100, 0, 150)
+                line(p1.x, p1.y, m.x, m.y)
+                if(d>particleDiameter){
+                    return this.seek(p2)
+                }else{
+                    // return this.wander(10,100,1)
+                }
             }
-
         }
-        return createVector(0, 0)
+        // return this.wander(10,100,1)
+
     }
 
     render() {
@@ -124,48 +93,49 @@ class Particle {
 
 
 
-    fleeOrSeek(targetPoint, flee = false) {
-        let currentPosition = this.pos
-        let currentVelocity = this.vel
-        let maxVelocity = this.maxSpeed
-        let distanceThreshold = particleSightMax
-
-        // Calculate distance between current position and target point
-        const distanceToTarget = Math.sqrt(
-            (targetPoint.x - currentPosition.x) ** 2 + (targetPoint.y - currentPosition.y) ** 2
-        );
-
-        // text(round(distanceToTarget,1), this.pos.x, this.pos.y)
+    
 
 
-        const steeringForce = { x: 0, y: 0 };
+    flee(target) {
+        const desiredVelocity = { x: this.pos.x - target.x, y: this.pos.y - target.y };
+        const distance = Math.sqrt(desiredVelocity.x ** 2 + desiredVelocity.y ** 2);
 
-        // If distance is greater than threshold, apply seek behavior
-        if (distanceToTarget > distanceThreshold) {
-            if (!flee) {
-                const desiredVelocity = {
-                    x: (targetPoint.x - currentPosition.x) / distanceToTarget * maxVelocity,
-                    y: (targetPoint.y - currentPosition.y) / distanceToTarget * maxVelocity
-                };
-
-                steeringForce.x = desiredVelocity.x - currentVelocity.x
-                steeringForce.y = desiredVelocity.y - currentVelocity.y
-            } else {
-                // Apply flee behavior if distance is less than or equal to threshold
-                const desiredVelocity = {
-                    x: (currentPosition.x - targetPoint.x) / distanceToTarget * maxVelocity,
-                    y: (currentPosition.y - targetPoint.y) / distanceToTarget * maxVelocity
-                };
-
-                steeringForce.x = desiredVelocity.x - currentVelocity.x
-                steeringForce.y = desiredVelocity.y - currentVelocity.y
-            }
+        if (distance < 1) {
+            // If we're very close to the target, just move away as fast as possible
+            desiredVelocity.x = -this.maxSpeed;
+            desiredVelocity.y = -this.maxSpeed;
+        } else {
+            // Normalize the desired velocity to have a magnitude of 1, then scale it by the maximum speed
+            const scaleFactor = this.maxSpeed / distance;
+            desiredVelocity.x *= scaleFactor;
+            desiredVelocity.y *= scaleFactor;
         }
 
-        let force = createVector(steeringForce.x, steeringForce.y)
+        // Calculate the steering vector by subtracting the current velocity from the desired velocity
+        const steeringVector = createVector(desiredVelocity.x - this.vel.x, desiredVelocity.y - this.vel.y);
 
-        return force;
+        // Return the steering vector
+        return steeringVector;
     }
+
+
+    seek(target) {
+        const desiredVelocity = { x: target.x - this.pos.x, y: target.y - this.pos.y };
+        const distance = Math.sqrt(desiredVelocity.x ** 2 + desiredVelocity.y ** 2);
+
+        // Normalize the desired velocity to have a magnitude of 1, then scale it by the maximum speed
+        const scaleFactor = this.maxSpeed / distance;
+        desiredVelocity.x *= scaleFactor;
+        desiredVelocity.y *= scaleFactor;
+
+        // Calculate the steering vector by subtracting the current velocity from the desired velocity
+        const steeringVector = createVector(desiredVelocity.x - this.vel.x, desiredVelocity.y - this.vel.y);
+
+
+        // Return the steering vector
+        return steeringVector;
+    }
+
 
 
 

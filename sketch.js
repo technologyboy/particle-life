@@ -42,7 +42,7 @@ function setup() {
 
   //set initial sim parameters 
   particleDiameter = 20
-  colorsTotal = 2
+  colorsTotal = 3
   particlesTotal = 100
   particleSightMax = 250
   particleSightMin = particleDiameter * 2
@@ -76,9 +76,9 @@ function simReset() {
   }
 
   //create the particle entites
-  let spread = (height / 2) - particleDiameter
+  let spread = createVector((width / 2) - particleDiameter, (height / 2) - particleDiameter)
   for (let i = 0; i < particlesTotal; i++) {
-    particles.push(new Particle(createVector((width / 2) + random(-spread, spread), (height / 2) + random(-spread, spread)), floor(random(colorsTotal))))
+    particles.push(new Particle(createVector((width / 2) + random(-spread.x, spread.x), (height / 2) + random(-spread.y, spread.y)), floor(random(colorsTotal))))
   }
 }
 
@@ -128,35 +128,25 @@ function draw() {
 
 
   //PARTICLES
+
   //--render and update all particles
   push()
   particles.forEach(particle => {
+    let range = new Circle(particle.pos.x, particle.pos.y, particleSightMax)
+    let neighbours = qTree.query(range);
+    let f = createVector()
+    neighbours.forEach(neighbour => {
+      f.add(particle.checkNeighbour(neighbour.userData))
+    });
+    particle.applyForce(f)
+
+    
     particle.render()
     particle.update()
   });
   pop()
 
-  //--create movement forces required based on particle neighbours
-  push()
-  particles.forEach(particle => {
-    //get all local particles
-    let range = new Circle(particle.pos.x, particle.pos.y, particleSightMax)
-    let neighbours = qTree.query(range);
 
-    let f = createVector(0, 0)
-    neighbours.forEach(neighbour => {
-      f.add(particle.checkNeighbour(neighbour.userData))
-    });
-
-    // console.log(f.x, f.y)
-    if (f.x === 0 && f.y === 0) {
-      particle.wander()
-    } else {
-      particle.applyForce(f)
-    }
-  });
-
-  pop()
 
 
 
@@ -186,25 +176,6 @@ function draw() {
   //----render the value squares
   UIObjects.forEach(obj => { obj.render() });
 }
-
-
-function draw_arrow(x1, x2, r,col) {
-  let offset = r
-  let mid = midPoint(x1, x2)
-  push() //start new drawing state
-  fill(col)
-  noStroke()
-  // strokeWeight(1)
-  var angle = atan2(x1.y - x2.y, x1.x - x2.x); //gets the angle of the line
-  translate(mid.x, mid.y); //translates to the destination vertex
-  rotate(angle - HALF_PI); //rotates the arrow point
-  triangle(-offset * 0.5, offset, offset * 0.5, offset, 0, -offset / 2); //draws the arrow point as a triangle
-  pop();
-}
-
-
-
-
 
 //-------------------------------------------------------------------------------------------
 //| SUPPORT FUNCTIONS 
