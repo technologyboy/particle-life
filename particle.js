@@ -3,7 +3,7 @@ class Particle {
         this.pos = (position) ? position : createVector(random(width), random(height));
         this.vel = createVector(0, 0)
         this.acc = createVector(0, 0);
-        this.maxSpeed = 0.5;
+        this.maxSpeed = 1;
         this.maxForce = 0.5
 
         this.color = color
@@ -19,113 +19,92 @@ class Particle {
         this.vel.limit(this.maxSpeed);
         this.pos.add(this.vel);
         this.acc.set(0, 0)
-        // this.edges()
-        // this.wander(10,1000,100)
-        this.bounce()
+
+        this.bounce() //or this.edges()
     };
 
     checkNeighbour(n) {
+        if(this === n){return createVector(0, 0)}//dont check if this is its self
+
+
+        noStroke()
+        fill(255)
+        textSize(16)
+        textAlign(CENTER, CENTER)
+
+
         let p1 = this.pos
         let p2 = n.pos
-        // //check if this particle is going to make an affect on this particles velocity
-        let d = dist(this.pos.x, this.pos.y, n.pos.x, n.pos.y)
-        let m = 0 //multiplyer
+        let d = dist(p1.x, p1.y, p2.x, p2.y)
         let a = attractionMatrix[this.color][n.color]
-        // noStroke()
-        // fill(255)
-        // textSize(15)
-        // textAlign(CENTER, CENTER)
-        if (d <= particleSightMax) {
 
+
+
+
+        if (d <= particleSightMax / 2) {//is this particle in range
             stroke(255, 50)
             strokeWeight(2)
             line(p1.x, p1.y, p2.x, p2.y)
+
+
+            stroke(0)
+            strokeWeight(2)
+            fill(255)
+            //text displays
             let m = midPoint(p1, p2)
-            let d = floor(dist(p1.x,p1.y, p2.x, p2.y))
-            noStroke()
-            fill(255,175)
-            text(d, m.x, m.y)
+            // text(floor(d), m.x, m.y)
+
+        
+            let mm = distAlongLine(p1, p2, 0.2)
+            
+            let offset = 12
+            
+            push()
+            fill(this.fill)
+            stroke(0)
+            var angle = atan2(p1.y - p2.y, p1.x - p2.x); //gets the angle of the line
+            translate(mm.x, mm.y); //translates to the destination vertex
+            rotate(angle - HALF_PI); //rotates the arrow point
+            // if(a>0)rotate(HALF_PI);
+            // if(a<0)rotate(-HALF_PI);
+            triangle(-offset * 0.5, offset, offset * 0.5, offset, 0, -offset / 2); //draws the arrow point as a triangle
+            pop();
 
 
 
+            // draw_arrow(p1,mm,10,this.fill)
             if (a > 0) {
+                // text('S', mm.x, mm.y)
                 return this.fleeOrSeek(n.pos)
-                // text('S' + a, this.pos.x, this.pos.y)
             } else if (a < 0) {
+                // text('F', mm.x, mm.y)
                 return this.fleeOrSeek(n.pos, true)
-                // text('F' + a, this.pos.x, this.pos.y)
+            } else {
+                // text('W', p1.x, p1.y)
+                return this.wander()
             }
 
-        } else {
-            return createVector(-1, 0)
         }
         return createVector(0, 0)
-
-        // if (d <= particleSightMin) {
-        //     m = map(d, 0, particleSightMin, -1, 0) //set magitude -1 to 0 based on how close from min range the particle is 
-        //     this.fleeOrSeek(n.pos)
-        //     // this.seek(n.pos, m)
-        // } else if (d <= particleSightMax / 2) {
-        //     m = map(d, particleSightMin, particleSightMax / 2, 0, a) //set mag 0 to matrix mag based on distance between 
-        //     this.fleeOrSeek(n.pos)
-        //     // this.seek(n.pos, m)
-        // } else if (d <= particleSightMax) {
-        //     m = map(d, particleSightMax / 2, particleSightMax, a, 0)
-        //     this.fleeOrSeek(n.pos)
-        //     // this.seek(n.pos, m)
-        // } else {
-        //     this.vel = createVector(0, 0)
-        //     this.acc = createVector(0, 0)
-        // }
     }
-
-    // seek(t, mag) {
-    //     var desired = p5.Vector.sub(t, this.pos);
-    //     desired.setMag(this.maxSpeed);
-    //     var steering = p5.Vector.sub(desired, this.vel);
-    //     steering.limit(this.maxForce);
-    //     steering.mult(mag)
-    //     this.applyForce(steering);
-    // }
-
-
 
     render() {
         push()
         translate(this.pos.x, this.pos.y)
         noStroke()
 
-        //DEBUG
+        // //radar
+        // fill(255, 10)
+        // ellipse(0, 0, particleSightMax)
 
-        //vector arrow.
-        // noFill()
-        // strokeWeight(1)
-        // stroke(200)
-
-        // let p1 = this.vel.copy()
-        // p1.setMag((particleDiameter / 3) + 10)
-        // let p2 = this.vel.copy()
-        // p2.setMag((particleDiameter / 2) + 2)
-        // line(p1.x, p1.y, p2.x, p2.y)
-
-
-        //radar
-        fill(255,10)
-        noStroke()
-        ellipse(0, 0, particleSightMax)
-
-        fill(0,100)
-        noStroke()
-        ellipse(0, 0, particleSightMin)
-
+        // fill(0, 100)
+        // ellipse(0, 0, particleSightMin)
 
         //Particle body
-        noStroke()
         fill(this.fill)
         ellipse(0, 0, particleDiameter)
 
-                pop()
-
+        pop()
     }
 
     edges() {
@@ -184,6 +163,7 @@ class Particle {
         }
 
         let force = createVector(steeringForce.x, steeringForce.y)
+
         return force;
     }
 
@@ -249,8 +229,8 @@ class Particle {
         currentVelocity.y += steeringForce.y;
 
         let force = createVector(steeringForce.x, steeringForce.y)
+        return force
 
-        this.applyForce(force)
     }
 
 

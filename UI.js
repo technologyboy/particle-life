@@ -5,10 +5,14 @@ class UI_Object {
         this.screenArea = screenArea
         this.clickCallback = clickCallback
         this.mouseWheelCallback = mouseWheelCallback
-        this.value = value
+        this.text = value
         this.backColor = backColor
         this.foreColor = foreColor
-        console.log(typeof this.screenArea)
+        this.mouseIn = false
+    }
+
+    checkMouseIn(x, y) {
+        this.mouseIn = this.screenArea.contains(createVector(x, y))
     }
 
     render() {
@@ -16,11 +20,10 @@ class UI_Object {
         let areaFor = this.foreColor
         let areaBck = this.backColor
         let textCol = this.foreColor
-        let mouseIn = this.screenArea.contains(createVector(mouseX, mouseY))
 
 
         //draw back
-        if (mouseIn) {
+        if (this.mouseIn) {
             fill(this.backColor)
             stroke('yellow')
             strokeWeight(3)
@@ -42,7 +45,7 @@ class UI_Object {
 
         //draw text
         noStroke()
-        if (mouseIn) {
+        if (this.mouseIn) {
             fill("yellow")
         } else {
             fill(this.foreColor)
@@ -50,20 +53,9 @@ class UI_Object {
 
         textAlign(CENTER, CENTER)
         let txtPos = this.screenArea.center()
-        text(this.value, txtPos.x, txtPos.y)
+        text(this.text, txtPos.x, txtPos.y)
 
 
         pop()
-    }
-
-    testClick() {
-
-    }
-
-    testWheel(e) {
-        if(this.screenArea.contains(mouseX,mouseY)){
-            let a = (e.delta > 0) ? 1 : -1;
-this.value += a
-        }
     }
 }
