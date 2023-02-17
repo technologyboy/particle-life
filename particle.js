@@ -3,7 +3,7 @@ class Particle {
         this.pos = (position) ? position : createVector(random(width), random(height));
         this.vel = createVector(0, 0)
         this.acc = createVector(0, 0);
-        this.maxSpeed = 2;
+        this.maxSpeed = 1;
         this.maxForce = 0.5
 
         this.color = color
@@ -18,9 +18,10 @@ class Particle {
         this.vel.add(this.acc);
         this.vel.limit(this.maxSpeed);
         this.pos.add(this.vel);
-        // this.acc.set(0, 0)
-        this.vel.mult(0.00001)
-        this.bounce() //or this.edges()
+        this.acc.set(0, 0)
+        //this.bounce() 
+        //or 
+        this.edges()
     };
 
     checkNeighbour(n) {
@@ -31,30 +32,22 @@ class Particle {
         let d = dist(p1.x, p1.y, p2.x, p2.y)
         let a = attractionMatrix[this.color][n.color]
 
-        if (d <= (particleSightMax / 2)) {//is this particle in range
-            stroke(255, 50)
-            strokeWeight(2)
-            line(p1.x, p1.y, p2.x, p2.y)
+        if (d <= particleSightMax && d >= particleSightMin*2) {//is this particle in range
+            if (debug_attraction) { stroke(255, 5); strokeWeight(2); line(p1.x, p1.y, p2.x, p2.y) }
 
             let m = midPoint(p1, p2)
 
-            strokeWeight(4)
+            // strokeWeight(4)
             if (a < 0) {
-                stroke(255, 0, 0, 150)
-                line(p1.x, p1.y, m.x, m.y)
+                if (debug_attraction) { stroke(255, 0, 0, 25); line(p1.x, p1.y, m.x, m.y) }
                 return this.flee(p2)
             } else if (a > 0) {
-                stroke(0, 100, 0, 150)
-                line(p1.x, p1.y, m.x, m.y)
-                if(d>particleDiameter){
+                if (debug_attraction) { stroke(0, 0, 255, 25); line(p1.x, p1.y, m.x, m.y) }
+                if (d > particleDiameter * 2) {
                     return this.seek(p2)
-                }else{
-                    // return this.wander(10,100,1)
                 }
             }
         }
-        // return this.wander(10,100,1)
-
     }
 
     render() {
@@ -62,12 +55,12 @@ class Particle {
         translate(this.pos.x, this.pos.y)
         noStroke()
 
-        // //radar
-        // fill(255, 10)
-        // ellipse(0, 0, particleSightMax)
-
-        // fill(0, 100)
-        // ellipse(0, 0, particleSightMin)
+        if (debug_vision) {//radar
+            fill(255, 10)
+            ellipse(0, 0, particleSightMax / 2)
+            fill(0, 100)
+            ellipse(0, 0, particleSightMin)
+        }
 
         //Particle body
         fill(this.fill)
@@ -93,14 +86,14 @@ class Particle {
 
 
 
-    
+
 
 
     flee(target) {
         const desiredVelocity = { x: this.pos.x - target.x, y: this.pos.y - target.y };
         const distance = Math.sqrt(desiredVelocity.x ** 2 + desiredVelocity.y ** 2);
 
-        if (distance < 1) {
+        if (distance < particleDiameter) {
             // If we're very close to the target, just move away as fast as possible
             desiredVelocity.x = -this.maxSpeed;
             desiredVelocity.y = -this.maxSpeed;
@@ -115,6 +108,7 @@ class Particle {
         const steeringVector = createVector(desiredVelocity.x - this.vel.x, desiredVelocity.y - this.vel.y);
 
         // Return the steering vector
+        steeringVector.limit(this.maxSpeed)
         return steeringVector;
     }
 
@@ -133,6 +127,7 @@ class Particle {
 
 
         // Return the steering vector
+        steeringVector.limit(this.maxSpeed)
         return steeringVector;
     }
 
@@ -199,6 +194,7 @@ class Particle {
         currentVelocity.y += steeringForce.y;
 
         let force = createVector(steeringForce.x, steeringForce.y)
+        force.limit(this.maxForce)
         return force
 
     }

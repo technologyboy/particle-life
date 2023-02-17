@@ -1,6 +1,11 @@
 //-------------------------------------------------------------------------------------------
 //| GLOBAL VARIABLES
 //-------------------------------------------------------------------------------------------
+let debug_attraction = false
+let debug_vision = false
+let debug_qtree = false
+
+// let selectedColors={A:null,B:null}
 
 let particles = []
 let attractionMatrix = []
@@ -8,7 +13,6 @@ let attractionMatrix = []
 let colors = []
 let qTree
 let boundry
-let engine = new Physics
 
 let particleDiameter
 let colorsTotal
@@ -39,14 +43,19 @@ function setup() {
   addColor('#e74a27')
   addColor('#a63a7b')
 
-
   //set initial sim parameters 
-  particleDiameter = 20
+  particleDiameter = 10
   colorsTotal = 3
   particlesTotal = 100
-  particleSightMax = 250
+  particleSightMax = 300
   particleSightMin = particleDiameter * 2
 
+  //start a new sim
+  restartSim()
+}
+
+function restartSim() {
+  UIObjects = []
   //set up the attraction matrix ui elements 
   let scale = 25
   let offset = createVector(30, 30)
@@ -57,30 +66,26 @@ function setup() {
     }
   }
 
-  //start a new sim
-  simReset()
-}
-
-
-function simReset() {
   //create a 2d array of values to denote the attraction or repultion between each color
   attractionMatrix = []
   for (let i = 0; i < colorsTotal; i++) {
     let row = []
     for (let j = 0; j < colorsTotal; j++) {
       let v = createAttractionValue()
+      v = (i == j) ? 1 : -1;
       row.push(v)
       UIObjects[index2DTo1D(i, j, colorsTotal)].text = v
     }
     attractionMatrix.push(row)
   }
 
+  //clear the current array of particles 
+  particles = []
+
   //create the particle entites
-  let spread = createVector((width / 2) - particleDiameter, (height / 2) - particleDiameter)
-  for (let i = 0; i < particlesTotal; i++) {
-    particles.push(new Particle(createVector((width / 2) + random(-spread.x, spread.x), (height / 2) + random(-spread.y, spread.y)), floor(random(colorsTotal))))
-  }
+  addParticles(particlesTotal)
 }
+
 
 
 //-------------------------------------------------------------------------------------------
@@ -111,6 +116,42 @@ function mouseMoved() {
   });
 }
 
+function keyPressed() {
+  console.log(keyCode)
+  switch (keyCode) {
+    case 49: case 97: //1
+      debug_attraction = !debug_attraction
+      break;
+    case 50: case 98: //2
+      debug_vision = !debug_vision
+      break;
+    case 51: case 99: //3
+      debug_qtree = !debug_qtree
+      break;
+    case 82: //R
+      restartSim()
+      break;
+    case 173: case 109: //-
+      colorsTotal -= 1
+      if (colorsTotal <= 0) colorsTotal = 1
+      restartSim()
+      break;
+    case 61: case 107: //+
+      colorsTotal += 1
+      if (colorsTotal > colors.length) colorsTotal = colors.length
+      restartSim()
+      break;
+    case 188://<
+      removeParticles(particlesTotal / 2)
+      break;
+    case 190: //>
+      addParticles(particlesTotal)
+      break;
+    default:
+      break;
+  }
+}
+
 
 
 //-------------------------------------------------------------------------------------------
@@ -126,9 +167,7 @@ function draw() {
   //-- add all of the elements to the qtree
   particles.forEach(particle => { qTree.insert(particle.pos, particle) });
 
-
   //PARTICLES
-
   //--render and update all particles
   push()
   particles.forEach(particle => {
@@ -138,32 +177,23 @@ function draw() {
     neighbours.forEach(neighbour => {
       f.add(particle.checkNeighbour(neighbour.userData))
     });
+    if (f.x === 0 && f.y === 0) { f.add(particle.wander(1, 50, 2)) }
     particle.applyForce(f)
 
-    
-    particle.render()
     particle.update()
+    particle.render()
   });
   pop()
 
-
-
-
-
-
   //DEBUG
   //--render the dispaly for the Qtree
-  // qTree.show()
-
+  if (debug_qtree) qTree.show()
 
   //UI ELEMENTS
   //--attraction matrix
-
   //----color spaces
-  // let one = UImatrix[0][0]
   let fst = UIObjects[0].screenArea
   let tl = new Rectangle(fst.x - fst.w, fst.y - fst.h, fst.w, fst.h)
-
 
   for (let i = 0; i < colorsTotal; i++) {
     fill(colors[i])
@@ -175,6 +205,17 @@ function draw() {
 
   //----render the value squares
   UIObjects.forEach(obj => { obj.render() });
+
+  //keybind text
+  textAlign(LEFT, CENTER);
+  textSize(15)
+  fill(255)
+  noStroke()
+  text('FPS: ' + floor(frameRate()), 10, height - 60)
+  text('DEBUG: [1] Attraction lines| [2] Sight| [3] Qtree|', 10, height - 45)
+  text('SIM: [R] Restart Sim| [-] Less Colors| [+] More colors|', 10, height - 30)
+  text('PARTICLES ' + particles.length + ': [<] half particles| [>] double particles|', 10, height - 15)
+
 }
 
 //-------------------------------------------------------------------------------------------
@@ -224,109 +265,19 @@ function createAttractionValue() {
   }
 }
 
+function addParticles(amount) {
+  let spread = createVector((width / 2) - particleDiameter, (height / 2) - particleDiameter)
+  for (let i = 0; i < amount; i++) {
+    particles.push(new Particle(createVector((width / 2) + random(-spread.x, spread.x), (height / 2) + random(-spread.y, spread.y)), floor(random(colorsTotal))))
+  }
+  particlesTotal = particles.length
+}
 
-
-
-
-
-
-
-//-------------------------------------------------------------------------------------------
-//| ARCHIVE
-//-------------------------------------------------------------------------------------------
-
-// function gradientLine(x1, y1, x2, y2, color1, color2) {
-//   // linear gradient from start to end of line
-//   var grad = this.drawingContext.createLinearGradient(x1, y1, x2, y2);
-//   grad.addColorStop(0, color1);
-//   grad.addColorStop(1, color2);
-
-//   this.drawingContext.strokeStyle = grad;
-
-//   line(x1, y1, x2, y2);
-// }
-
-// function calculateAttractionForce(A, B) {
-
-
-
-//   let desired = p5.Vector.sub(B.pos, A.pos)
-//   let d = desired.mag()
-
-
-//   let a = attractionMatrix[A.color][B.color]
-//   let m = 0
-
-//   //setting the magnitude of the force to be applied baded on the d(ist) and attraction mag
-//   if (d <= particleSightMin) {
-//     m = map(d, 0, particleSightMin, -1, 0) //set magitude -1 to 0 based on how close from min range the particle is 
-//   } else if (d <= particleSightMax / 2) {
-//     m = map(d, particleSightMin, particleSightMax / 2, 0, a) //set mag 0 to matrix mag based on distance between 
-//   } else if (d <= particleSightMax) {
-//     m = map(d, particleSightMax / 2, particleSightMax, a, 0)
-//   } else {
-//     m = 0
-//   }
-
-
-
-//   desired.setMag(desired.mag() * m)
-//   let steer = p5.Vector.sub(desired, A.vel)
-//   steer.limit(0.5)
-
-
-
-//   fill(255)
-//   if (steer.mag !== 0) {
-//     if (steer.mag > 0) {
-//       stroke('green')
-//     } else if (steer.mag < 0) {
-//       stroke('red')
-//     } else {
-//       stroke(50)
-//     }
-//     text(m, A.pos.x, A.pos.y)
-
-//     // text(round(steer.mag(), 1), A.pos.x, A.pos.y)
-//     line(A.pos.x, A.pos.y, B.pos.x, B.pos.y)
-
-//   }
-
-
-
-
-//   A.vel.add(steer)
-// }
-
-// function calculateAttractionForce(A, B) {
-//   // let isFlee = false
-//   let force = new p5.Vector().sub(A.pos, B.pos)
-//   force.setMag(1)
-//   // if (isFlee) {
-//   let a = attractionMatrix[A.color][B.color]
-
-//   force.mult(a)
-//   // }
-
-//   force.sub(B.vel)
-//   force.limit(1)
-
-//   A.vel.add(force)
-
-
-// }
-
-
-
-// function lineColor(v) {
-//   let a = 10
-//   let rtn
-//   if (v < 0) {
-//     rtn = color(255, 0, 0, a)
-//   } else if (v > 0) {
-//     rtn = color(0, 0, 255, a)
-//   } else {
-//     rtn = color(180, 0)
-//   }
-//   return rtn
-// }
+function removeParticles(amount) {
+  let targetAmount = particles.length - amount
+  while (particles.length > targetAmount) {
+    const random = Math.floor(Math.random() * particles.length);
+    particles.splice(random, 1)[0];
+  }
+  particlesTotal = particles.length
+}
