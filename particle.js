@@ -3,8 +3,8 @@ class Particle {
         this.pos = (position) ? position : createVector(random(width), random(height));
         this.vel = createVector(0, 0)
         this.acc = createVector(0, 0);
-        this.maxSpeed = 1;
-        this.maxForce = 0.5
+        this.maxSpeed = 2;
+        this.maxForce = 0.6
 
         this.color = color
         this.fill = colors[color]
@@ -18,7 +18,6 @@ class Particle {
         this.vel.add(this.acc);
         this.vel.limit(this.maxSpeed);
         this.pos.add(this.vel);
-        this.acc.set(0, 0)
         //this.bounce() 
         //or 
         this.edges()
@@ -32,12 +31,9 @@ class Particle {
         let d = dist(p1.x, p1.y, p2.x, p2.y)
         let a = attractionMatrix[this.color][n.color]
 
-        if (d <= particleSightMax && d >= particleSightMin*2) {//is this particle in range
+        if (d <= particleSightMax && d >= particleSightMin * 2) {//is this particle in range
             if (debug_attraction) { stroke(255, 5); strokeWeight(2); line(p1.x, p1.y, p2.x, p2.y) }
-
             let m = midPoint(p1, p2)
-
-            // strokeWeight(4)
             if (a < 0) {
                 if (debug_attraction) { stroke(255, 0, 0, 25); line(p1.x, p1.y, m.x, m.y) }
                 return this.flee(p2)
@@ -62,12 +58,35 @@ class Particle {
             ellipse(0, 0, particleSightMin)
         }
 
+        if (debug_velocities) {
+            push()
+            //render a line toward the current velocity
+            let p2 = this.vel.copy()
+            p2.mult(particleDiameter)
+            p2.limit(particleDiameter)
+            strokeWeight(particleDiameter / 1.5)
+            stroke(this.fill)
+            line(0, 0, p2.x, p2.y)
+            pop()
+        }
+
         //Particle body
         fill(this.fill)
+        noStroke()
         ellipse(0, 0, particleDiameter)
 
         pop()
     }
+
+    drawText(x, y, px, py) {
+        let r = 2
+        x = Math.round((x + Number.EPSILON) * 100) / 100
+        y = Math.round((y + Number.EPSILON) * 100) / 100
+
+
+        text(x + ' : ' + y, px, py)
+    }
+
 
     edges() {
         //wrap the particle across the screen
@@ -108,7 +127,8 @@ class Particle {
         const steeringVector = createVector(desiredVelocity.x - this.vel.x, desiredVelocity.y - this.vel.y);
 
         // Return the steering vector
-        steeringVector.limit(this.maxSpeed)
+        // steeringVector.limit(this.maxSpeed)
+        steeringVector.limit(this.maxForce)
         return steeringVector;
     }
 
@@ -127,7 +147,9 @@ class Particle {
 
 
         // Return the steering vector
-        steeringVector.limit(this.maxSpeed)
+        // steeringVector.limit(this.maxSpeed)
+        steeringVector.limit(this.maxForce)
+
         return steeringVector;
     }
 

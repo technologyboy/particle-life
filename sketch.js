@@ -3,9 +3,10 @@
 //-------------------------------------------------------------------------------------------
 let debug_attraction = false
 let debug_vision = false
-let debug_qtree = false
+let debug_qtree = true
+let debug_velocities = true
+let hide_UI = false
 
-// let selectedColors={A:null,B:null}
 
 let particles = []
 let attractionMatrix = []
@@ -24,16 +25,21 @@ let particleSightMin //how close do particles need to be before the afftect of t
 //--UI elements
 let UIObjects = []
 
+let keyBindings = []
+
+
 //-------------------------------------------------------------------------------------------
 //| INITIAL SET UP
 //-------------------------------------------------------------------------------------------
 
 function setup() {
+
+
   //set up canvas
   createCanvas(windowWidth, windowHeight);
 
   //game area
-  boundary = new Rectangle(10, 10, width - 20, height - 20)
+  boundary = new Rectangle(0, 0, width, height)
 
   //particle colors
   let addColor = function (hex) { let c = color(hex); c.setAlpha(255); colors.push(c) }
@@ -46,9 +52,101 @@ function setup() {
   //set initial sim parameters 
   particleDiameter = 10
   colorsTotal = 3
-  particlesTotal = 100
+  particlesTotal = 4
   particleSightMax = 300
   particleSightMin = particleDiameter * 2
+
+
+  //set up keybindings
+  keyBindings.push({
+    'bindings': [49, 97],
+    'func': function () { debug_attraction = !debug_attraction },
+    'actionDisplay': 'Attraction Lines',
+    'keyDisplay': '1',
+    'category': 'DEBUG'
+  })
+
+  keyBindings.push({
+    'bindings': [50, 98],
+    'func': function () { debug_vision = !debug_vision },
+    'actionDisplay': 'Radar',
+    'keyDisplay': '2',
+    'category': 'DEBUG'
+  })
+
+  keyBindings.push({
+    'bindings': [51, 99],
+    'func': function () { debug_velocities = !debug_velocities },
+    'actionDisplay': 'Velocities',
+    'keyDisplay': '3',
+    'category': 'DEBUG'
+  })
+
+  keyBindings.push({
+    'bindings': [52, 100],
+    'func': function () { debug_qtree = !debug_qtree },
+    'actionDisplay': 'qTree',
+    'keyDisplay': '4',
+    'category': 'DEBUG'
+  })
+
+  keyBindings.push({
+    'bindings': [82],
+    'func': restartSim,
+    'actionDisplay': 'Restart',
+    'keyDisplay': 'R',
+    'category': 'SIMULATION'
+  })
+
+  keyBindings.push({
+    'bindings': [188],
+    'func': function () { removeParticles(particles.length / 2) },
+    'actionDisplay': 'Half Particles',
+    'keyDisplay': '<',
+    'category': 'PARTICLES'
+  })
+
+  keyBindings.push({
+    'bindings': [190],
+    'func': function () { addParticles(particles.length) },
+    'actionDisplay': 'Double Particles',
+    'keyDisplay': '>',
+    'category': 'PARTICLES'
+  })
+
+  keyBindings.push({
+    'bindings': [173, 109],
+    'func': function () {
+      colorsTotal -= 1
+      if (colorsTotal <= 0) colorsTotal = 1
+      restartSim()
+    },
+    'actionDisplay': 'Less Colors',
+    'keyDisplay': '-',
+    'category': 'COLORS'
+  })
+
+  keyBindings.push({
+    'bindings': [61, 107],
+    'func': function () {
+      colorsTotal += 1
+      if (colorsTotal > colors.length) colorsTotal = colors.length
+      restartSim()
+    },
+    'actionDisplay': 'More Colors',
+    'keyDisplay': '+',
+    'category': 'COLORS'
+  })
+
+  keyBindings.push({
+    'bindings': [48, 96],
+    'func': function () {
+      hide_UI = !hide_UI
+    },
+    'actionDisplay': 'Hide UI',
+    'keyDisplay': '0',
+    'category': 'UI'
+  })
 
   //start a new sim
   restartSim()
@@ -91,64 +189,45 @@ function restartSim() {
 //-------------------------------------------------------------------------------------------
 //| USER INTERACTION
 //-------------------------------------------------------------------------------------------
+
 //--mouse wheel interactions
 function mouseWheel(event) {
-  let a = (event.delta > 0) ? -1 : 1;
+ if(!hide_UI){
 
-  //get all UI objects that have the mouse in value
-  let index = 0
-  UIObjects.forEach(obj => {
-    if (obj.mouseIn === true) {
-      let am = index1DTo2D(index, colorsTotal)
-      attractionMatrix[am.x][am.y] += a
-      attractionMatrix[am.x][am.y] = clamp(-1, 1, attractionMatrix[am.x][am.y])
-      obj.text = attractionMatrix[am.x][am.y]
-    }
-    index++
-  });
-
+   let a = (event.delta > 0) ? -1 : 1;
+   
+   //get all UI objects that have the mouse in value
+   let index = 0
+   UIObjects.forEach(obj => {
+     if (obj.mouseIn === true) {
+       let am = index1DTo2D(index, colorsTotal)
+       attractionMatrix[am.x][am.y] += a
+       attractionMatrix[am.x][am.y] = clamp(-1, 1, attractionMatrix[am.x][am.y])
+       obj.text = attractionMatrix[am.x][am.y]
+      }
+      index++
+    });
+    
+  }
 }
 
 //--mouse moved
 function mouseMoved() {
-  UIObjects.forEach(obj => {
-    obj.checkMouseIn(mouseX, mouseY)
-  });
+  if(!hide_UI){
+
+    UIObjects.forEach(obj => {
+      obj.checkMouseIn(mouseX, mouseY)
+    });
+  }
 }
 
+//keyboard interaction
 function keyPressed() {
-  console.log(keyCode)
-  switch (keyCode) {
-    case 49: case 97: //1
-      debug_attraction = !debug_attraction
-      break;
-    case 50: case 98: //2
-      debug_vision = !debug_vision
-      break;
-    case 51: case 99: //3
-      debug_qtree = !debug_qtree
-      break;
-    case 82: //R
-      restartSim()
-      break;
-    case 173: case 109: //-
-      colorsTotal -= 1
-      if (colorsTotal <= 0) colorsTotal = 1
-      restartSim()
-      break;
-    case 61: case 107: //+
-      colorsTotal += 1
-      if (colorsTotal > colors.length) colorsTotal = colors.length
-      restartSim()
-      break;
-    case 188://<
-      removeParticles(particlesTotal / 2)
-      break;
-    case 190: //>
-      addParticles(particlesTotal)
-      break;
-    default:
-      break;
+  const found = keyBindings.find(element => element.bindings.includes(keyCode));
+  if (found) {
+    found.func(eval(found.value))
+  } else {
+    console.log(keyCode)
   }
 }
 
@@ -163,13 +242,14 @@ function draw() {
 
   //QTREE
   //-- create a new qtree
-  qTree = new QuadTree(boundary, 10)
+  qTree = new QuadTree(boundary, 3)
   //-- add all of the elements to the qtree
   particles.forEach(particle => { qTree.insert(particle.pos, particle) });
 
   //PARTICLES
   //--render and update all particles
   push()
+  let c = 0
   particles.forEach(particle => {
     let range = new Circle(particle.pos.x, particle.pos.y, particleSightMax)
     let neighbours = qTree.query(range);
@@ -180,8 +260,15 @@ function draw() {
     if (f.x === 0 && f.y === 0) { f.add(particle.wander(1, 50, 2)) }
     particle.applyForce(f)
 
-    particle.update()
+    // if (c === 0) {
+    //   particle.pos.x = mouseX
+    //   particle.pos.y = mouseY
+    // } else {
+
+      particle.update()
+    // }
     particle.render()
+    c++
   });
   pop()
 
@@ -190,32 +277,76 @@ function draw() {
   if (debug_qtree) qTree.show()
 
   //UI ELEMENTS
-  //--attraction matrix
-  //----color spaces
-  let fst = UIObjects[0].screenArea
-  let tl = new Rectangle(fst.x - fst.w, fst.y - fst.h, fst.w, fst.h)
+  if (!hide_UI) {
+    //--attraction matrix
+    //----color spaces
+    let fst = UIObjects[0].screenArea
+    let tl = new Rectangle(fst.x - fst.w, fst.y - fst.h, fst.w, fst.h)
 
-  for (let i = 0; i < colorsTotal; i++) {
-    fill(colors[i])
-    stroke(255)
-    strokeWeight(1)
-    ellipse(tl.x + (tl.w / 2), tl.y + (tl.h / 2) + (tl.h * (i + 1)), tl.w - (tl.w / 3), tl.h - (tl.h / 3))
-    ellipse(tl.x + (tl.w / 2) + tl.w * (i + 1), tl.y + (tl.h / 2), tl.w - (tl.w / 3), tl.h - (tl.h / 3))
+    for (let i = 0; i < colorsTotal; i++) {
+      fill(colors[i])
+      stroke(255)
+      strokeWeight(1)
+      ellipse(tl.x + (tl.w / 2), tl.y + (tl.h / 2) + (tl.h * (i + 1)), tl.w - (tl.w / 3), tl.h - (tl.h / 3))
+      ellipse(tl.x + (tl.w / 2) + tl.w * (i + 1), tl.y + (tl.h / 2), tl.w - (tl.w / 3), tl.h - (tl.h / 3))
+    }
+
+    //----render the value squares
+    UIObjects.forEach(obj => { obj.render() });
+
+    //keybind text
+    textAlign(LEFT, CENTER);
+    textSize(10)
+    fill(255)
+    noStroke()
+
+
+
+    let cat = ''
+    let colWidth = 110
+    let h = 400
+    let s = createVector(10, height - h - 10)
+    let step = 16
+
+    push()
+    fill(150, 100)
+    strokeWeight(5)
+    stroke(150)
+    rect(s.x, s.y, colWidth, h, 5)
+    pop()
+
+    s.x += 10
+
+    textAlign(LEFT, CENTER)
+    fill(255, 150)
+    noStroke()
+    keyBindings.forEach(key => {
+      if (cat !== key.category) {
+        s.y += step
+        keyBindHeading(key.category, s.x, s.y, colWidth, step)
+        cat = key.category
+        s.y += step
+
+      }
+      text('[' + key.keyDisplay + '] ' + key.actionDisplay, s.x, s.y, colWidth, step)
+      s.y += step
+    })
+
+    s.y += step
+    keyBindHeading("VALUES", s.x, s.y, colWidth, step)
+    s.y += step
+    text('paticles: ' + particles.length, s.x, s.y, colWidth, step)
+    s.y += step
+    text('FPS: ' + floor(frameRate()), s.x, s.y, colWidth, step)
   }
+}
 
-  //----render the value squares
-  UIObjects.forEach(obj => { obj.render() });
-
-  //keybind text
-  textAlign(LEFT, CENTER);
-  textSize(15)
-  fill(255)
-  noStroke()
-  text('FPS: ' + floor(frameRate()), 10, height - 60)
-  text('DEBUG: [1] Attraction lines| [2] Sight| [3] Qtree|', 10, height - 45)
-  text('SIM: [R] Restart Sim| [-] Less Colors| [+] More colors|', 10, height - 30)
-  text('PARTICLES ' + particles.length + ': [<] half particles| [>] double particles|', 10, height - 15)
-
+function keyBindHeading(t, x, y, w, h) {
+  push()
+  textStyle(BOLD)
+  textSize(12)
+  text(t, x, y, w, h)
+  pop()
 }
 
 //-------------------------------------------------------------------------------------------
@@ -280,4 +411,8 @@ function removeParticles(amount) {
     particles.splice(random, 1)[0];
   }
   particlesTotal = particles.length
+}
+
+function toggleBool(b) {
+  b = !b
 }

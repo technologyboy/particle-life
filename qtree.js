@@ -86,15 +86,16 @@ class QuadTree {
     subdivide() {
         let x = this.boundary.x;
         let y = this.boundary.y;
-        let w = this.boundary.w;
-        let h = this.boundary.h;
-        let ne = new Rectangle(x + w / 2, y - h / 2, w / 2, h / 2);
+        let w = this.boundary.w / 2;
+        let h = this.boundary.h / 2;
+
+        let ne = new Rectangle(x + w, y, w, h);
         this.northeast = new QuadTree(ne, this.capacity);
-        let nw = new Rectangle(x - w / 2, y - h / 2, w / 2, h / 2);
+        let nw = new Rectangle(x - w, y, w, h);
         this.northwest = new QuadTree(nw, this.capacity);
-        let se = new Rectangle(x + w / 2, y + h / 2, w / 2, h / 2);
+        let se = new Rectangle(x + w, y + h, w, h);
         this.southeast = new QuadTree(se, this.capacity);
-        let sw = new Rectangle(x - w / 2, y + h / 2, w / 2, h / 2);
+        let sw = new Rectangle(x, y + h, w, h);
         this.southwest = new QuadTree(sw, this.capacity);
         this.divided = true;
     }
@@ -104,6 +105,7 @@ class QuadTree {
         let point = new Point(p.x, p.y, UserData)
 
         if (!this.boundary.contains(point)) {
+            // console.log('cant add to qtree already exists')
             return false;
         }
 
@@ -111,9 +113,8 @@ class QuadTree {
             this.points.push(point);
             return true;
         } else {
-            if (!this.divided) {
-                this.subdivide();
-            }
+            if (!this.divided) { this.subdivide(); }
+
             if (this.northeast.insert(p, UserData)) {
                 return true;
             } else if (this.northwest.insert(p, UserData)) {
@@ -154,19 +155,7 @@ class QuadTree {
 
 
     show() {
-        push()
-        stroke(85);
-        noFill();
-        strokeWeight(1);
-        rectMode(CENTER);
-        rect(this.boundary.x, this.boundary.y, this.boundary.w * 2, this.boundary.h * 2);
-        for (let p of this.points) {
-            strokeWeight(8);
-            point(p.x, p.y);
-            strokeWeight(1);
-            // line(p.x, p.y, this.boundary.x + (this.boundary.w / 2), this.boundary.y + (this.boundary.h / 2))
-            line(p.x, p.y, this.boundary.x, this.boundary.y)
-        }
+        let ctr = this.boundary.center()
 
         if (this.divided) {
             this.northeast.show();
@@ -175,13 +164,42 @@ class QuadTree {
             this.southwest.show();
         }
         else {
+
+
+
+            push()
+            fill(255, 5)
+            stroke(100, 150);
+            strokeWeight(4);
+            rect(this.boundary.x, this.boundary.y, (this.boundary.w * 2) - 10, (this.boundary.h * 2) - 10);
+            pop()
+
+
+            push()
+            textSize(15)
+            let step = 12
+            let i = 0
+            for (let p of this.points) {
+                noStroke()
+                fill(100)
+                text(floor(p.x) + ":" + floor(p.y), this.boundary.x + 5, this.boundary.y + (step * i) + 10)
+                strokeWeight(1);
+                stroke(100, 150);
+                line(p.x, p.y, ctr.x, ctr.y)
+                i++
+            }
+            pop()
+
+
+            push()
             noStroke()
+            fill(85)
             textSize(15)
             textAlign(CENTER, CENTER)
-            fill(85)
-            text(this.points.length, this.boundary.x + this.boundary.w - 15, this.boundary.y + this.boundary.h - 15)
+            text(this.points.length, ctr.x, ctr.y)
+            pop()
         }
-        pop()
+
     }
 
 

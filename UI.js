@@ -59,3 +59,71 @@ class UI_Object {
         pop()
     }
 }
+
+class UIDisplay {
+    constructor(x, y, w, h) {
+        this.x = x
+        this.y = y
+        this.w = w
+        this.h = h
+        this.items = []
+        this.lastHeader = ''
+    }
+
+    addItem(display, header) {
+        
+        this.items.push(display)
+    }
+
+    render() {
+        push()
+
+
+
+        //keybind text
+        textAlign(LEFT, CENTER);
+        textSize(10)
+        fill(255)
+        noStroke()
+
+
+
+        let cat = ''
+        let colWidth = 120
+        let top = 400
+        let s = createVector(10, height - top - 150)
+        let step = 16
+
+        push()
+        fill(150, 50)
+        strokeWeight(5)
+        stroke(150)
+        rect(s.x, s.y, colWidth, 300, 5)
+        pop()
+        s.x += 10
+
+        textAlign(LEFT, CENTER)
+        keyBindings.forEach(key => {
+            if (cat !== key.category) {
+                s.y += step
+                keyBindHeading(key.category, s.x, s.y, colWidth, step)
+                cat = key.category
+                s.y += step
+
+            }
+            text('[' + key.keyDisplay + '] ' + key.actionDisplay, s.x, s.y, colWidth, step)
+            s.y += step
+        })
+
+        s.y += step * 2
+        keyBindHeading("VALUES", s.x, s.y, colWidth, step)
+        s.y += step
+        text('paticles: ' + particles.length, s.x, s.y, colWidth, step)
+        s.y += step
+        text('FPS: ' + floor(frameRate()), s.x, s.y, colWidth, step)
+
+
+        pop()
+    }
+
+}
