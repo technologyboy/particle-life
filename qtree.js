@@ -89,14 +89,24 @@ class QuadTree {
         let w = this.boundary.w / 2;
         let h = this.boundary.h / 2;
 
+        //create child nodes
         let ne = new Rectangle(x + w, y, w, h);
         this.northeast = new QuadTree(ne, this.capacity);
-        let nw = new Rectangle(x - w, y, w, h);
+        let nw = new Rectangle(x, y, w, h);
         this.northwest = new QuadTree(nw, this.capacity);
         let se = new Rectangle(x + w, y + h, w, h);
         this.southeast = new QuadTree(se, this.capacity);
         let sw = new Rectangle(x, y + h, w, h);
         this.southwest = new QuadTree(sw, this.capacity);
+        //add all current points to the approiate subdivision
+        for (let i = this.points; i < this.points.length; i++) {
+            const element = this.points[i];
+            this.northeast.insert(p, UserData)
+            this.northwest.insert(p, UserData)
+            this.southeast.insert(p, UserData)
+            this.southwest.insert(p, UserData)
+        }
+        this.points = [] //clear the existing points
         this.divided = true;
     }
 
@@ -105,26 +115,24 @@ class QuadTree {
         let point = new Point(p.x, p.y, UserData)
 
         if (!this.boundary.contains(point)) {
-            // console.log('cant add to qtree already exists')
-            return false;
+            return false; // point is not in the quadtree region
         }
 
         if (this.points.length < this.capacity) {
-            this.points.push(point);
+            this.points.push(point); // add point to this node
             return true;
-        } else {
-            if (!this.divided) { this.subdivide(); }
-
-            if (this.northeast.insert(p, UserData)) {
-                return true;
-            } else if (this.northwest.insert(p, UserData)) {
-                return true;
-            } else if (this.southeast.insert(p, UserData)) {
-                return true;
-            } else if (this.southwest.insert(p, UserData)) {
-                return true;
-            }
         }
+
+        if (!this.divided) {
+            this.subdivide(); //create child nodes
+        }
+
+        // recursively insert point into child nodes
+        if (this.northeast.insert(p, UserData)) return true;
+        if (this.northwest.insert(p, UserData)) return true;
+        if (this.southeast.insert(p, UserData)) return true;
+        if (this.southwest.insert(p, UserData)) return true;
+        return false;// point could not be inserted into any child nodes
     }
 
     query(range, found) {
@@ -147,61 +155,54 @@ class QuadTree {
                 this.southeast.query(range, found);
             }
         }
-
         return found;
     }
 
-
-
-
     show() {
         let ctr = this.boundary.center()
+
+        push()
+        textSize(15)
+        let step = 15
+        let i = 0
+        for (let p of this.points) {
+            // noStroke()
+            // fill(100)
+            // text(floor(p.x) + ":" + floor(p.y), this.boundary.x + 5, this.boundary.y + (step * i) + 20)
+            strokeWeight(1);
+            stroke(100, 150);
+            line(p.x, p.y, ctr.x, ctr.y)
+            i++
+        }
+        pop()
+
+        push()
+        noStroke()
+        fill(85)
+        textSize(15)
+        textAlign(CENTER, CENTER)
+        ellipse(ctr.x, ctr.y, 25)
+        fill(0)
+        text(this.points.length, ctr.x, ctr.y)
+        pop()
+
 
         if (this.divided) {
             this.northeast.show();
             this.northwest.show();
             this.southeast.show();
             this.southwest.show();
-        }
-        else {
-
-
-
+        } else {
             push()
-            fill(255, 5)
+            // fill(255, 5)
+            noFill()
             stroke(100, 150);
-            strokeWeight(4);
-            rect(this.boundary.x, this.boundary.y, (this.boundary.w * 2) - 10, (this.boundary.h * 2) - 10);
+            strokeWeight(1);
+            let pad = 0
+            rect(this.boundary.x + pad, this.boundary.y + pad, this.boundary.w - (pad * 2), this.boundary.h - (pad * 2));
             pop()
 
 
-            push()
-            textSize(15)
-            let step = 12
-            let i = 0
-            for (let p of this.points) {
-                noStroke()
-                fill(100)
-                text(floor(p.x) + ":" + floor(p.y), this.boundary.x + 5, this.boundary.y + (step * i) + 10)
-                strokeWeight(1);
-                stroke(100, 150);
-                line(p.x, p.y, ctr.x, ctr.y)
-                i++
-            }
-            pop()
-
-
-            push()
-            noStroke()
-            fill(85)
-            textSize(15)
-            textAlign(CENTER, CENTER)
-            text(this.points.length, ctr.x, ctr.y)
-            pop()
         }
-
     }
-
-
-
 }

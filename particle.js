@@ -3,11 +3,13 @@ class Particle {
         this.pos = (position) ? position : createVector(random(width), random(height));
         this.vel = createVector(0, 0)
         this.acc = createVector(0, 0);
-        this.maxSpeed = 2;
+        this.maxSpeed = 1;
         this.maxForce = 0.6
 
         this.color = color
         this.fill = colors[color]
+
+        this.selected = false
     }
 
     applyForce(force) {
@@ -74,6 +76,14 @@ class Particle {
         fill(this.fill)
         noStroke()
         ellipse(0, 0, particleDiameter)
+
+
+        if(this.selected){
+            stroke("yellow")
+            strokeWeight(3)
+    ellipse(0, 0, particleDiameter)
+
+}
 
         pop()
     }

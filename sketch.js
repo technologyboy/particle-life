@@ -5,7 +5,7 @@ let debug_attraction = false
 let debug_vision = false
 let debug_qtree = true
 let debug_velocities = true
-let hide_UI = false
+let hide_UI = true
 
 
 let particles = []
@@ -39,7 +39,8 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
 
   //game area
-  boundary = new Rectangle(0, 0, width, height)
+  let padding = 0
+  boundary = new Rectangle(padding, padding, width - (padding * 2), height - (padding * 2))
 
   //particle colors
   let addColor = function (hex) { let c = color(hex); c.setAlpha(255); colors.push(c) }
@@ -52,7 +53,7 @@ function setup() {
   //set initial sim parameters 
   particleDiameter = 10
   colorsTotal = 3
-  particlesTotal = 4
+  particlesTotal = 10
   particleSightMax = 300
   particleSightMin = particleDiameter * 2
 
@@ -192,28 +193,34 @@ function restartSim() {
 
 //--mouse wheel interactions
 function mouseWheel(event) {
- if(!hide_UI){
+  if (!hide_UI) {
 
-   let a = (event.delta > 0) ? -1 : 1;
-   
-   //get all UI objects that have the mouse in value
-   let index = 0
-   UIObjects.forEach(obj => {
-     if (obj.mouseIn === true) {
-       let am = index1DTo2D(index, colorsTotal)
-       attractionMatrix[am.x][am.y] += a
-       attractionMatrix[am.x][am.y] = clamp(-1, 1, attractionMatrix[am.x][am.y])
-       obj.text = attractionMatrix[am.x][am.y]
+    let a = (event.delta > 0) ? -1 : 1;
+
+    //get all UI objects that have the mouse in value
+    let index = 0
+    UIObjects.forEach(obj => {
+      if (obj.mouseIn === true) {
+        let am = index1DTo2D(index, colorsTotal)
+        attractionMatrix[am.x][am.y] += a
+        attractionMatrix[am.x][am.y] = clamp(-1, 1, attractionMatrix[am.x][am.y])
+        obj.text = attractionMatrix[am.x][am.y]
       }
       index++
     });
-    
+
   }
 }
 
+// function mousePressed(){
+//   console.log("clicked")
+//   particles.push(new Particle(createVector(mouseX,mouseY),0))
+// }
+
+
 //--mouse moved
 function mouseMoved() {
-  if(!hide_UI){
+  if (!hide_UI) {
 
     UIObjects.forEach(obj => {
       obj.checkMouseIn(mouseX, mouseY)
@@ -242,9 +249,13 @@ function draw() {
 
   //QTREE
   //-- create a new qtree
-  qTree = new QuadTree(boundary, 3)
+  qTree = new QuadTree(boundary, 2)
   //-- add all of the elements to the qtree
-  particles.forEach(particle => { qTree.insert(particle.pos, particle) });
+  particles.forEach(particle => { 
+    particle.selected = !qTree.insert(particle.pos, particle)
+
+    
+  });
 
   //PARTICLES
   //--render and update all particles
@@ -265,7 +276,7 @@ function draw() {
     //   particle.pos.y = mouseY
     // } else {
 
-      particle.update()
+    particle.update()
     // }
     particle.render()
     c++
