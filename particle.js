@@ -4,12 +4,14 @@ class Particle {
         this.vel = createVector(0, 0)
         this.acc = createVector(0, 0);
         this.maxSpeed = 1;
-        this.maxForce = 0.6
+        this.maxForce = 0.2
 
         this.color = color
         this.fill = colors[color]
 
         this.selected = false
+
+        this.qtreeArea = null
     }
 
     applyForce(force) {
@@ -26,7 +28,7 @@ class Particle {
     };
 
     checkNeighbour(n) {
-        if (this === n) { return createVector(0, 0) }//dont check if this is its self
+        if (this === n) { return false }//dont check if this is its self
 
         let p1 = this.pos
         let p2 = n.pos
@@ -55,7 +57,7 @@ class Particle {
 
         if (debug_vision) {//radar
             fill(255, 10)
-            ellipse(0, 0, particleSightMax / 2)
+            ellipse(0, 0, particleSightMax)
             fill(0, 100)
             ellipse(0, 0, particleSightMin)
         }
@@ -78,12 +80,13 @@ class Particle {
         ellipse(0, 0, particleDiameter)
 
 
-        if(this.selected){
+        if (this.selected) {
             stroke("yellow")
             strokeWeight(3)
-    ellipse(0, 0, particleDiameter)
+            ellipse(0, 0, particleDiameter)
+        }
 
-}
+
 
         pop()
     }

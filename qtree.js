@@ -98,8 +98,9 @@ class QuadTree {
         this.southeast = new QuadTree(se, this.capacity);
         let sw = new Rectangle(x, y + h, w, h);
         this.southwest = new QuadTree(sw, this.capacity);
+
         //add all current points to the approiate subdivision
-        for (let i = this.points; i < this.points.length; i++) {
+        for (let i = this.points; i <= this.points.length; i++) {
             const element = this.points[i];
             this.northeast.insert(p, UserData)
             this.northwest.insert(p, UserData)
@@ -118,7 +119,7 @@ class QuadTree {
             return false; // point is not in the quadtree region
         }
 
-        if (this.points.length < this.capacity) {
+        if (this.points.length < this.capacity && !this.divided) {
             this.points.push(point); // add point to this node
             return true;
         }
@@ -132,6 +133,7 @@ class QuadTree {
         if (this.northwest.insert(p, UserData)) return true;
         if (this.southeast.insert(p, UserData)) return true;
         if (this.southwest.insert(p, UserData)) return true;
+
         return false;// point could not be inserted into any child nodes
     }
 
@@ -162,30 +164,24 @@ class QuadTree {
         let ctr = this.boundary.center()
 
         push()
-        textSize(15)
-        let step = 15
-        let i = 0
         for (let p of this.points) {
-            // noStroke()
-            // fill(100)
-            // text(floor(p.x) + ":" + floor(p.y), this.boundary.x + 5, this.boundary.y + (step * i) + 20)
-            strokeWeight(1);
+            strokeWeight(2);
             stroke(100, 150);
             line(p.x, p.y, ctr.x, ctr.y)
-            i++
         }
         pop()
 
-        push()
-        noStroke()
-        fill(85)
-        textSize(15)
-        textAlign(CENTER, CENTER)
-        ellipse(ctr.x, ctr.y, 25)
-        fill(0)
-        text(this.points.length, ctr.x, ctr.y)
-        pop()
-
+        if (this.points.length !== 0) {
+            push()
+            noStroke()
+            fill(85)
+            textSize(15)
+            textAlign(CENTER, CENTER)
+            ellipse(ctr.x, ctr.y, 25)
+            fill(0)
+            text(this.points.length, ctr.x, ctr.y)
+            pop()
+        }
 
         if (this.divided) {
             this.northeast.show();
@@ -194,15 +190,11 @@ class QuadTree {
             this.southwest.show();
         } else {
             push()
-            // fill(255, 5)
             noFill()
             stroke(100, 150);
             strokeWeight(1);
-            let pad = 0
-            rect(this.boundary.x + pad, this.boundary.y + pad, this.boundary.w - (pad * 2), this.boundary.h - (pad * 2));
+            rect(this.boundary.x, this.boundary.y, this.boundary.w, this.boundary.h);
             pop()
-
-
         }
     }
 }
