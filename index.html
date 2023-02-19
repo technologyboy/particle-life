@@ -6,9 +6,68 @@
 <head>
   <meta charset="utf-8" />
   <link rel="stylesheet" type="text/css" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
 </head>
 
 <body>
+  <div class="container-fluid p-0 m-0 bg-black">
+
+    <div class="d-flex m-0 p-0">
+      <div class="bg-dark p-0 m-0" id="left">
+        <div class="d-flex flex-column h-100 p-0">
+          
+          <div class="mb-3 p-2">
+            <h4 class="text-primary text-center">Partical Count</h4>
+            <div class="btn-group w-100" role="group" aria-label="Basic example">
+              <button type="button" class="btn btn-primary">-</button>
+              <button type="button" disabled class="btn btn-primary"><span>200</span></button>
+              <button type="button" class="btn btn-primary">+</button>
+            </div>
+          </div>
+
+          <div class="mb-3 p-2">
+            <h4 class="text-primary text-center">Colours</h4>
+            <div class="btn-group w-100" role="group" aria-label="Basic example">
+              <button type="button" class="btn btn-primary">-</button>
+              <button type="button" disabled class="btn btn-primary"><span>3</span></button>
+              <button type="button" class="btn btn-primary">+</button>
+            </div>
+          </div>
+
+          <div class="mb-3 p-2">
+            <h4 class="text-primary text-center">Debug</h4>
+            <div class="btn-group-vertical" role="group" aria-label="Basic checkbox toggle button group">
+              <input class="btn-check" type="checkbox" value="" id="attraction-lines"
+                title="Show/Hide Attraction Lines">
+              <label class="btn btn-outline-primary" for="attraction-lines"> Attraction Lines </label>
+              <input class="btn-check" type="checkbox" value="" id="particle-vision" title="Show/Hide Particle Vision">
+              <label class="btn btn-outline-primary" for="particle-vision"> Particle Vision</label>
+              <input class="btn-check" type="checkbox" value="" id="particle-velocities"
+                title="Show/Hide Particle Velocities">
+              <label class="btn btn-outline-primary" for="particle-velocities"> Particle Velocities</label>
+              <input class="btn-check" type="checkbox" value="" id="qtree-render" title="Show/Hide qTree">
+              <label class="btn btn-outline-primary" for="qtree-render">Quad Tree</label>
+            </div>
+          </div>
+
+          
+
+          <div class="w-100 p-2">
+            <button class="btn btn-danger w-100" id="restart-sim">
+              Restart Sim
+            </button>
+          </div>
+
+        </div>
+      </div>
+      <div class="p-0 flex-grow-1 bg-dark-subtle" id="canvasWrapper"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+    crossorigin="anonymous"></script>
   <script src="p5.min.js"></script>
   <script src="qtree.js"></script>
   <script src="particle.js"></script>
