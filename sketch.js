@@ -54,7 +54,7 @@ function setup() {
 
   //set up canvas
   // createCanvas(windowWidth, windowHeight);
-  var canvas = createCanvas(windowWidth-200, windowHeight);
+  var canvas = createCanvas(windowWidth - 200, windowHeight);
   canvas.parent('canvasWrapper');
 
 
@@ -72,11 +72,10 @@ function setup() {
   addColor('#a63a7b')
 
   //set initial sim parameters 
-  particleDiameter = 10
-  colorsTotal = 3
-  particlesTotal = 200
-  particleSightMax = 300
-  particleSightMin = particleDiameter * 2
+  particleDiameter = 8
+  colorsTotal = 2
+  particlesTotal = 100
+  
 
 
 
@@ -182,7 +181,7 @@ function draw() {
   //-- create a new qtree
   qTree = new QuadTree(boundary, 3)
   //-- add all of the elements to the qtree
-  particles.forEach(particle => { qTree.insert(particle.pos, particle) });
+  particles.forEach(particle => { qTree.insert(particle.vehicle.pos, particle) });
 
   //DEBUG
   //--render the dispaly for the Qtree
@@ -192,12 +191,13 @@ function draw() {
   //--render and update all particles
   push()
   particles.forEach(particle => {
-    let range = new Circle(particle.pos.x, particle.pos.y, particleSightMax)
-    let neighbours = qTree.query(range);
-    let f = createVector()
-    neighbours.forEach(neighbour => { f.add(particle.checkNeighbour(neighbour.userData)) });
-    // if (f.x === 0 && f.y === 0) { f.add(particle.wander(1, 50, 2)) }
-    particle.applyForce(f)
+    // let range = new Circle(particle.vehicle.pos.x, particle.vehicle.pos.y, particle.sightRange)
+    // let neighbours = qTree.query(range);// get all near by particles
+    // neighbours.forEach(neighbour => { if (particle.checkNeighbour(neighbour.userData) === false) { particle.vehicle.wander() } });
+
+    let neighbours = particles;//get all other particles
+    neighbours.forEach(neighbour => { if (neighbour !== particle) { particle.checkNeighbour(neighbour) } });
+
     particle.update()
     particle.render()
   });
@@ -220,48 +220,6 @@ function draw() {
 
     //----render the value squares
     UIObjects.forEach(obj => { obj.render() });
-
-    // //keybind text
-    // textAlign(LEFT, CENTER);
-    // textSize(10)
-    // fill(255)
-    // noStroke()
-
-    // let cat = ''
-    // let colWidth = 110
-    // let h = 400
-    // let s = createVector(10, height - h - 10)
-    // let step = 16
-
-    // push()
-    // fill(150, 100)
-    // strokeWeight(5)
-    // stroke(150)
-    // rect(s.x, s.y, colWidth, h, 5)
-    // pop()
-
-    // s.x += 10
-
-    // textAlign(LEFT, CENTER)
-    // fill(255, 150)
-    // noStroke()
-    // // keyBindings.forEach(key => {
-    // //   if (cat !== key.category) {
-    // //     s.y += step
-    // //     keyBindHeading(key.category, s.x, s.y, colWidth, step)
-    // //     cat = key.category
-    // //     s.y += step
-    // //   }
-    // //   text('[' + key.keyDisplay + '] ' + key.actionDisplay, s.x, s.y, colWidth, step)
-    // //   s.y += step
-    // // })
-
-    // s.y += step
-    // keyBindHeading("VALUES", s.x, s.y, colWidth, step)
-    // s.y += step
-    // text('paticles: ' + particles.length, s.x, s.y, colWidth, step)
-    // s.y += step
-    // text('FPS: ' + floor(frameRate()), s.x, s.y, colWidth, step)
   }
 }
 
