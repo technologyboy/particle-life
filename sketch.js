@@ -74,7 +74,7 @@ function setup() {
   //set initial sim parameters 
   particleDiameter = 8
   colorsTotal = 2
-  particlesTotal = 1
+  particlesTotal = 10
 
 
 
@@ -195,18 +195,11 @@ function draw() {
     let p = particle.vehicle.pos
     let range = new Circle(p.x, p.y, particle.sightRange)
     let neighbours = qTree.query(range);// get all near by particles
-    neighbours.forEach(neighbour => { particle.checkNeighbour(neighbour.userData) });
-
-    fill(255)
-    noStroke()
-    text("L:" + neighbours.length, p.x, p.y + (particleDiameter / 2), particleDiameter, particleDiameter)
-
-    // let neighbours = particles;//get all other particles
-    // neighbours.forEach(neighbour => { if (neighbour !== particle) { particle.checkNeighbour(neighbour) } });
+    particle.checkNeighbours(neighbours.map(function(element){return element.userData}))
+    // neighbours.forEach(neighbour => { particle.checkNeighbour(neighbour.userData) });
 
     particle.update()
     particle.render()
-
   });
 
 

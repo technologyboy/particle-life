@@ -3,7 +3,7 @@ class Vehicle {
         this.pos = createVector(x, y);
         this.vel = createVector(random(-1, 1), random(-1, 1));
         this.acc = createVector(0, 0);
-        this.maxSpeed = 0.1; //2
+        this.maxSpeed = 1; //2
         this.maxForce = 0.8; //0.8
         this.r = particleDiameter;
 
