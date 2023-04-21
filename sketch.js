@@ -74,8 +74,8 @@ function setup() {
   //set initial sim parameters 
   particleDiameter = 8
   colorsTotal = 2
-  particlesTotal = 100
-  
+  particlesTotal = 1
+
 
 
 
@@ -190,17 +190,26 @@ function draw() {
   //PARTICLES
   //--render and update all particles
   push()
-  particles.forEach(particle => {
-    // let range = new Circle(particle.vehicle.pos.x, particle.vehicle.pos.y, particle.sightRange)
-    // let neighbours = qTree.query(range);// get all near by particles
-    // neighbours.forEach(neighbour => { if (particle.checkNeighbour(neighbour.userData) === false) { particle.vehicle.wander() } });
 
-    let neighbours = particles;//get all other particles
-    neighbours.forEach(neighbour => { if (neighbour !== particle) { particle.checkNeighbour(neighbour) } });
+  particles.forEach(particle => {
+    let p = particle.vehicle.pos
+    let range = new Circle(p.x, p.y, particle.sightRange)
+    let neighbours = qTree.query(range);// get all near by particles
+    neighbours.forEach(neighbour => { particle.checkNeighbour(neighbour.userData) });
+
+    fill(255)
+    noStroke()
+    text("L:" + neighbours.length, p.x, p.y + (particleDiameter / 2), particleDiameter, particleDiameter)
+
+    // let neighbours = particles;//get all other particles
+    // neighbours.forEach(neighbour => { if (neighbour !== particle) { particle.checkNeighbour(neighbour) } });
 
     particle.update()
     particle.render()
+
   });
+
+
   pop()
 
   //UI ELEMENTS

@@ -3,7 +3,7 @@ class Particle {
         this.color = color
         this.fill = colors[color]
 
-        this.sightRange = 100
+        this.sightRange = 200
         this.sightAngle = 60
 
         this.vehicle = new Vehicle(position.x, position.y)
@@ -21,51 +21,15 @@ class Particle {
         let p1 = this.vehicle.pos
         let p2 = n.vehicle.pos
 
-
-        // if (this.canSeeThis(p2)) {//isthis other particle in my sight range
-        if (this.isInsideSector(p2, p1, this.vehicle.vel.heading(), this.vehicle.vel.heading() + radians(this.sightAngle), this.sightRange)) {
+        if (this.isInsideSector(p2, p1, this.vehicle.vel.heading(), this.vehicle.vel.heading() + TWO_PI + radians(this.sightAngle), this.sightRange)) {
             let a = attractionMatrix[this.color][n.color]
 
             if (a < 0) {//flee
                 this.vehicle.evade(n.vehicle)
-                // stroke(255, 0, 0, 100);
-                // strokeWeight(2);
-                // action = "flee"
-
-
-
             } else if (a > 0) {//seek
                 this.vehicle.pursue(n.vehicle)
-                // stroke(0, 255, 0, 100);
-                // strokeWeight(5);
-                // action = "seek"
-
-            } else {
-                // stroke(255, 255, 255, 100);
-                // strokeWeight(8);
-
             }
-
-
-            // push()
-
-            // strokeWeight(3);
-            // let mp = midPoint(p1,p2)
-            // let qp = midPoint(p1,mp)
-            // line(p1.x, p1.y, mp.x, mp.y)
-            // noStroke()
-            // fill(255)
-            // text(action, qp.x,qp.y)
-            // pop()
-            // return true
-
-        } else {
-            // return false
         }
-
-
-
-
     }
 
     render() {
@@ -73,63 +37,91 @@ class Particle {
         stroke(this.fill)
         this.vehicle.show()
 
+        if (debug_vision) { this.drawVision() }
 
-        if (debug_vision) {//radar
-            push()
-            translate(this.vehicle.pos.x, this.vehicle.pos.y)
-            rotate(this.vehicle.vel.heading())
-            noFill()
-            stroke(255, 50)
-            strokeWeight(3)
-            arc(0, 0, this.sightRange * 2, this.sightRange * 2, TWO_PI - radians(this.sightAngle), TWO_PI + radians(this.sightAngle), PIE);
-            pop()
+        if (this.canISeeThis(mouseX, mouseY)) {
+            line(mouseX, mouseY, this.vehicle.pos.x, this.vehicle.pos.y)
         }
-
     }
 
-    canSeeThis(pt) {
-        let angleOfVision = this.sightAngle
-        let rangeOfVision = this.sightRange
-        let center = this.vehicle.pos
-        let point = pt
-
-        // Convert angle of vision to radians
-        const theta = this.vehicle.vel.heading() + radians(angleOfVision)
-
-
-        // Calculate distance between point and center
-        const dx = point.x - center.x;
-        const dy = point.y - center.y;
-        const distance = Math.sqrt(dx ** 2 + dy ** 2);
-
+    drawVision() {
         push()
-        fill(255, 100)
-        noStroke()
-        arc(center.x, center.y, rangeOfVision, rangeOfVision, theta, theta + 1)
+        translate(this.vehicle.pos.x, this.vehicle.pos.y)
+        rotate(this.vehicle.vel.heading())
+
+        noFill()
+
+        //draw the full sight range radius
+        stroke(100, 50, 25)
+        circle(0, 0, this.sightRange * 2)
+
+        //draw the vision arc
+        stroke(255, 50)
+        strokeWeight(3)
+        arc(0, 0, this.sightRange * 2, this.sightRange * 2, TWO_PI - radians(this.sightAngle), TWO_PI + radians(this.sightAngle), PIE);
+
+
+
         pop()
-
-
-        // Check if point is within range of vision
-        if (distance > rangeOfVision) {
-            return false;
-        }
-
-        // Calculate angle between point and x-axis
-        const phi = Math.atan2(dy, dx);
-
-        // Normalize angle between -pi and pi
-        const normalizedPhi = (phi + Math.PI) % (2 * Math.PI) - Math.PI;
-
-        // Check if angle between point and x-axis is within angle of vision
-        return Math.abs(normalizedPhi) <= theta / 2;
     }
 
+
+    canISeeThis(x, y) {
+        //first check if the device is within the max vision range
+        if (dist(x, y, this.vehicle.pos.x, this.vehicle.pos.y) > this.sightRange) { return false }
+
+        let pt1 = createVector(x, y)
+        return this.isInsideSector(pt1, this.vehicle.pos, this.vehicle.vel.heading(), this.vehicle.vel.heading() + TWO_PI + radians(this.sightAngle), this.sightRange)
+    }
 
     isInsideSector(point, center, sectorStart, sectorEnd, radiusSquared) {
         var relPoint = {
             x: point.x - center.x,
             y: point.y - center.y
         };
+
+        push()
+        noFill()
+        stroke("green")
+        strokeWeight(4)
+        circle(point.x, point.y, 10, 10)
+
+        stroke(200)
+        arc(center.x, center.y, radiusSquared, sectorStart, sectorEnd, PIE);
+
+        fill(255)
+        noStroke()
+        let s = 20
+        let y = center.y + s
+        text("Rad^2: " + radiusSquared, center.x, y)
+        y += s
+        text("S: " + sectorStart, center.x, y)
+        y += s
+        text("E: " + sectorEnd, center.x, y)
+        y += s
+        let h = this.vehicle.vel.heading()
+
+        text("Heading: " + this.vehicle.vel.heading(), center.x, y)
+
+
+
+        let facing = p5.Vector.fromAngle(this.vehicle.vel.heading(), radiusSquared * 2)
+        let vS = p5.Vector.fromAngle(this.vehicle.vel.heading() + sectorStart, radiusSquared)
+        let vE = p5.Vector.fromAngle(this.vehicle.vel.heading() + sectorEnd, radiusSquared)
+        vS.add(this.vehicle.pos)
+        vE.add(this.vehicle.pos)
+        facing.add(this.vehicle.pos)
+
+
+
+        noFill()
+        stroke(150)
+        line(center.x, center.y, vS.x, vS.y)
+        line(center.x, center.y, vE.x, vE.y)
+        line(center.x, center.y, facing.x, facing.y)
+
+        pop()
+
 
         return !this.areClockwise(sectorStart, relPoint) &&
             this.areClockwise(sectorEnd, relPoint) &&
