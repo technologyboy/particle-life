@@ -37,16 +37,28 @@ class Particle {
         let p2 = n.vehicle.pos
 
         if (this.canISeeThis(p2.x, p2.y)) {
-            line(p1.x,p1.y,p2.x,p2.y)
             let a = attractionMatrix[this.color][n.color]
+            switch (a) {
+                case -1:
+                    // this.vehicle.evade(n.vehicle)
+                this.vehicle.applyForce(this.vehicle.flee(n.vehicle.pos))
+                stroke(255,0,0)
+                    break;
 
-            if (a < 0) {//flee
-                // this.vehicle.evade(n.vehicle)
-                this.vehicle.flee(n.vehicle.pos)
-            } else if (a > 0) {//seek
+                    case 1:
                 // this.vehicle.pursue(n.vehicle)
-                this.vehicle.arrive(n.vehicle.pos)
+                this.vehicle.applyForce(this.vehicle.arrive(n.vehicle.pos))
+                stroke(0,255,0)    
+                    break;
+            
+                default:
+                    stroke(0)
+                    break;
             }
+
+                   let mp = midPoint(p1,p2)
+            strokeWeight(4)
+            line(p1.x,p1.y,mp.x,mp.y)
         }
     }
 

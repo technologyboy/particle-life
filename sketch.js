@@ -19,13 +19,8 @@ let particleDiameter
 let colorsTotal
 let particlesTotal
 
-let particleSightMax //how far away doest another particle need to be to be outside the afftect of the attraction forces
-let particleSightMin //how close do particles need to be before the afftect of the attraction forces are null, to avoid all particles clumping together
-
 //--UI elements
 let UIObjects = []
-
-// let keyBindings = []
 
 
 //-------------------------------------------------------------------------------------------
@@ -33,31 +28,14 @@ let UIObjects = []
 //-------------------------------------------------------------------------------------------
 
 function setup() {
-  chkAttractionLines = select('#attraction-lines')
-  chkAttractionLines.changed(function () { debug_attraction = chkAttractionLines.checked(); });
-
-  chkVision = select('#particle-vision')
-  chkVision.changed(function () { debug_vision = chkVision.checked() });
-
-  chkVelocities = select('#particle-velocities')
-  chkVelocities.changed(function () { debug_velocities = chkVelocities.checked() });
-
-  chkQtree = select('#qtree-render')
-  chkQtree.changed(function () { debug_qtree = chkQtree.checked() });
-
-
-  btnRestart = select('#restart-sim');
-  btnRestart.mousePressed(restartSim);
-
-
-
+  //set initial sim parameters 
+  particleDiameter = 8
+  colorsTotal = 2
+  particlesTotal = 5
 
   //set up canvas
-  // createCanvas(windowWidth, windowHeight);
   var canvas = createCanvas(windowWidth - 200, windowHeight);
   canvas.parent('canvasWrapper');
-
-
 
   //game area
   let padding = 0
@@ -71,16 +49,61 @@ function setup() {
   addColor('#e74a27')
   addColor('#a63a7b')
 
-  //set initial sim parameters 
-  particleDiameter = 8
-  colorsTotal = 2
-  particlesTotal = 10
-
-
-
+  //create UI elements and function handelers 
+  initUI()
 
   //start a new sim
   restartSim()
+}
+
+
+function initUI() {
+
+  // chkAttractionLines = select('#attraction-lines')
+  // chkAttractionLines.changed(function () { debug_attraction = chkAttractionLines.checked(); });
+
+  chkVision = select('#particle-vision')
+  chkVision.changed(function () { debug_vision = chkVision.checked() });
+
+  // chkVelocities = select('#particle-velocities')
+  // chkVelocities.changed(function () { debug_velocities = chkVelocities.checked() });
+
+  chkQtree = select('#qtree-render')
+  chkQtree.changed(function () { debug_qtree = chkQtree.checked() });
+
+
+  btnRestart = select('#restart-sim');
+  btnRestart.mousePressed(restartSim);
+
+  //Particle Count
+  btnPartCountAdd = select('#btnPartCountAdd');
+  btnPartCountAdd.mousePressed(function(){addParticles(1)});
+
+  btnPartCountRemove = select('#btnPartCountRemove');
+  btnPartCountRemove.mousePressed(function(){removeParticles(1)});
+
+  lblPartCount = select('#lblPartCount');
+
+  
+
+  //attraction matrix
+
+  for (let i = 0; i < colorsTotal.length; i++) {
+    // let 
+    
+  }
+
+
+  //  //set up the attraction matrix ui elements 
+  //  let scale = 25
+  //  let offset = createVector(30, 30)
+  //  for (let i = 0; i < colorsTotal; i++) {
+  //    for (let j = 0; j < colorsTotal; j++) {
+  //      let r = new Rectangle(offset.x + (i * scale), offset.y + (j * scale), scale, scale)
+  //      UIObjects.push(new UI_Object(0, r, "black", "white"))
+  //    }
+  //  }
+
 }
 
 function restartSim() {
@@ -100,7 +123,7 @@ function restartSim() {
   for (let i = 0; i < colorsTotal; i++) {
     let row = []
     for (let j = 0; j < colorsTotal; j++) {
-      let v = createAttractionValue()
+      let v = floor(random(-1, 1))
       v = (i == j) ? 1 : -1;
       row.push(v)
       UIObjects[index2DTo1D(i, j, colorsTotal)].text = v
@@ -191,11 +214,12 @@ function draw() {
   //--render and update all particles
   push()
 
+
   particles.forEach(particle => {
     let p = particle.vehicle.pos
     let range = new Circle(p.x, p.y, particle.sightRange)
     let neighbours = qTree.query(range);// get all near by particles
-    particle.checkNeighbours(neighbours.map(function(element){return element.userData}))
+    particle.checkNeighbours(neighbours.map(function (element) { return element.userData }))
     // neighbours.forEach(neighbour => { particle.checkNeighbour(neighbour.userData) });
 
     particle.update()
@@ -261,41 +285,37 @@ function distAlongLine(p1, p2, pos) {
   return createVector(midX, midY)
 }
 
-function createAttractionValue() {
-  let a = floor(random(3))
-  switch (a) {
-    case 0:
-      return -1
-      break;
-    case 1:
-      return 0
-      break;
-    case 2:
-      return 1
-      break;
 
-    default:
-      break;
-  }
+
+function toggleBool(b) {
+  b = !b
 }
 
-function addParticles(amount) {
+
+//UI functions 
+function addParticles(amount = 1) {
+  console.log("Add Particles", amount)
+
   let spread = createVector((width / 2) - particleDiameter, (height / 2) - particleDiameter)
   for (let i = 0; i < amount; i++) {
     particles.push(new Particle(createVector((width / 2) + random(-spread.x, spread.x), (height / 2) + random(-spread.y, spread.y)), floor(random(colorsTotal))))
   }
   particlesTotal = particles.length
+  updateParticleTotalDisplay()
 }
 
-function removeParticles(amount) {
+function removeParticles(amount = 1) {
+  console.log("Remove Particles", amount)
+
   let targetAmount = particles.length - amount
   while (particles.length > targetAmount) {
     const random = Math.floor(Math.random() * particles.length);
     particles.splice(random, 1)[0];
   }
   particlesTotal = particles.length
+  updateParticleTotalDisplay()
 }
 
-function toggleBool(b) {
-  b = !b
+function updateParticleTotalDisplay() {
+  lblPartCount.html(particles.length)
 }

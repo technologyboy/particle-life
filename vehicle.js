@@ -4,7 +4,7 @@ class Vehicle {
         this.vel = createVector(random(-1, 1), random(-1, 1));
         this.acc = createVector(0, 0);
         this.maxSpeed = 1; //2
-        this.maxForce = 0.8; //0.8
+        this.maxForce = 2; //0.8
         this.r = particleDiameter;
 
         this.wanderTheta = PI / 2;

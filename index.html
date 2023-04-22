@@ -16,13 +16,45 @@
     <div class="d-flex m-0 p-0">
       <div class="bg-dark p-0 m-0" id="left">
         <div class="d-flex flex-column h-100 p-0">
-          
+
+          <div class="mb-3 p-2">
+            <table class="table table-sm">
+
+              <head>
+                <tr>
+                  <th style="background-color:'#621448'">#</th>
+                  <th>#</th>
+                </tr>
+              </head>
+
+              <tr>
+                <th>#</th>
+                <td>  
+                   <div class="btn-group w-100" role="group" aria-label="Basic example">
+                  <button type="button" class="btn btn-primary" id="btnPartCountRemove">-</button>
+                  <button type="button" disabled class="btn btn-primary"><span id="lblPartCount">200</span></button>
+                  <button type="button" class="btn btn-primary" id="btnPartCountAdd">+</button>
+                </div></td>
+                <td></td>
+              </tr>
+              <tr>
+                <th>#</th>
+                <td></td>
+                <td></td>
+              </tr>
+            </table>
+
+
+          </div>
+
+
+
           <div class="mb-3 p-2">
             <h4 class="text-primary text-center">Partical Count</h4>
             <div class="btn-group w-100" role="group" aria-label="Basic example">
-              <button type="button" class="btn btn-primary">-</button>
-              <button type="button" disabled class="btn btn-primary"><span>200</span></button>
-              <button type="button" class="btn btn-primary">+</button>
+              <button type="button" class="btn btn-primary" id="btnPartCountRemove">-</button>
+              <button type="button" disabled class="btn btn-primary"><span id="lblPartCount">200</span></button>
+              <button type="button" class="btn btn-primary" id="btnPartCountAdd">+</button>
             </div>
           </div>
 
@@ -38,20 +70,23 @@
           <div class="mb-3 p-2">
             <h4 class="text-primary text-center">Debug</h4>
             <div class="btn-group-vertical" role="group" aria-label="Basic checkbox toggle button group">
-              <input class="btn-check" type="checkbox" value="" id="attraction-lines"
-                title="Show/Hide Attraction Lines">
-              <label class="btn btn-outline-primary" for="attraction-lines"> Attraction Lines </label>
+
+              <!-- <input class="btn-check" type="checkbox" value="" id="attraction-lines" title="Show/Hide Attraction Lines">
+              <label class="btn btn-outline-primary" for="attraction-lines"> Attraction Lines </label> -->
+
               <input class="btn-check" type="checkbox" value="" id="particle-vision" title="Show/Hide Particle Vision">
               <label class="btn btn-outline-primary" for="particle-vision"> Particle Vision</label>
-              <input class="btn-check" type="checkbox" value="" id="particle-velocities"
-                title="Show/Hide Particle Velocities">
-              <label class="btn btn-outline-primary" for="particle-velocities"> Particle Velocities</label>
+
+              <!-- <input class="btn-check" type="checkbox" value="" id="particle-velocities" title="Show/Hide Particle Velocities">
+              <label class="btn btn-outline-primary" for="particle-velocities"> Particle Velocities</label> -->
+
               <input class="btn-check" type="checkbox" value="" id="qtree-render" title="Show/Hide qTree">
               <label class="btn btn-outline-primary" for="qtree-render">Quad Tree</label>
+
             </div>
           </div>
 
-          
+
 
           <div class="w-100 p-2">
             <button class="btn btn-danger w-100" id="restart-sim">
