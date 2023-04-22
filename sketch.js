@@ -30,8 +30,8 @@ let UIObjects = []
 function setup() {
   //set initial sim parameters 
   particleDiameter = 8
-  colorsTotal = 2
-  particlesTotal = 5
+  colorsTotal = 3
+  particlesTotal = 50
 
   //set up canvas
   var canvas = createCanvas(windowWidth - 200, windowHeight);
@@ -83,26 +83,6 @@ function initUI() {
   btnPartCountRemove.mousePressed(function(){removeParticles(1)});
 
   lblPartCount = select('#lblPartCount');
-
-  
-
-  //attraction matrix
-
-  for (let i = 0; i < colorsTotal.length; i++) {
-    // let 
-    
-  }
-
-
-  //  //set up the attraction matrix ui elements 
-  //  let scale = 25
-  //  let offset = createVector(30, 30)
-  //  for (let i = 0; i < colorsTotal; i++) {
-  //    for (let j = 0; j < colorsTotal; j++) {
-  //      let r = new Rectangle(offset.x + (i * scale), offset.y + (j * scale), scale, scale)
-  //      UIObjects.push(new UI_Object(0, r, "black", "white"))
-  //    }
-  //  }
 
 }
 
